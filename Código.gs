@@ -3,6 +3,8 @@
  * Un script que envía respuestas enlatadas de acuerdo con las etiquetas 
  * y marca de destacados que se detectan en los mensajes recibidos. 
  *
+ * Hay que desactivar la vista 
+ * 
  * @OnlyCurrentDoc
  * CC BY-NC-SA @pfelipm
  */
@@ -154,8 +156,13 @@ function procesarEmails() {
 
               hilo.getMessages().forEach(mensaje => {
                 
-                // ¿Mensaje aún no procesado?
-                if (mensaje.isStarred()) {
+                // ¿Mensaje aún no procesado *y* etiquetado con etiqueta que estamos procesando?
+                // Si está activada la vista de conversación en Gmail es posible que el hilo
+                // contenga mensajes con distintas etiquetas. Al usar GmailLabel.getThreads()
+                // se devolverán todos siempre, por lo que es necesaria esta comprobación adicional,
+                // que utiliza el servicio avanzado de Gmail para enumerar las etiquetas propias
+                // de un mensaje dado.
+                if (mensaje.isStarred() && etiquetasMensaje(mensaje, etiqueta)) {
                 
                   const body = mensaje.getPlainBody();
                   let destinatario;
@@ -214,48 +221,6 @@ function procesarEmails() {
                         mensaje: `Error intederminado al enviar email`
                       });
                   }
-
-                  /*
-                  // Construir borrador
-                  const nuevoBorrador = GmailApp.createDraft(
-                    destinatario,
-                    borrador.asuntoRegEx[2],
-                    'Debes usar un cliente de correo compatible con HTML para visualizar este mensaje.',
-                    {
-                      htmlBody: elementosMensaje.htmlBody,
-                      attachments: elementosMensaje.attachments,
-                      inlineImages: elementosMensaje.inlineImages,
-                      name: remitente
-                    });
-                  
-                  // Enviar mensaje y eliminar estrella si todo ha ido bien
-                  try {
-                    console.info(`Enviando respuesta ${plantilla} a ${remitente}`);
-                    nuevoBorrador.send();
-                    // ¡No se refrescan en Gmail, aunque realmente sin estrella! >>  https://issuetracker.google.com/issues/77320923
-                    mensaje.unstar().markRead().refresh();
-                    operaciones.push(
-                      {
-                        estado: EMAYORDOMO.simboloOk,
-                        tiempo: selloTiempo,
-                        etiqueta: etiqueta,
-                        email: destinatario,
-                        plantilla: plantilla,
-                        mensaje: `Autorespuesta enviada`
-                      });
-                  } catch(e) {
-                    console.error(`Error al enviar respuesta ${plantilla} a ${remitente}.`);
-                    operaciones.push(
-                      {
-                        estado: EMAYORDOMO.simboloError,
-                        tiempo: selloTiempo,
-                        etiqueta: etiqueta,
-                        email: destinatario,
-                        plantilla: plantilla,
-                        mensaje: `Error intederminado al enviar email`
-                      });
-                  }
-                  */
                 }       
               }); // De envío de respuesta  
               
@@ -316,6 +281,26 @@ function extraerElementos(msg) {
 }
 
 /**
+ * Devuelve TRUE si el mensaje está etiquetado con la etiqueta
+ * que se pasa como parámetro
+ * @param {GmailMessage} msg
+ * @param {string} etiqueta
+ * @returns {Boolean}
+ */
+function etiquetasMensaje(msg, etiqueta) {
+
+  const id = msg.getId();
+  const idEtiqueta = Gmail.Users.Labels.list('me').labels.find(e => e.name == etiqueta).id;
+  etiquetas = Gmail.Users.Messages.get('me', id).labelIds;
+  console.info(etiquetas)
+  
+  if (etiquetas.map) return etiquetas.includes(idEtiqueta);
+  else return false;
+
+}
+
+/**
+ * NO UTILIZADO
  * Crea un duplicado del borrador cuyo id se pasa como parámetro,
  * incluyendo cuerpo html, imágenes en línea y adjuntos.
  * 
