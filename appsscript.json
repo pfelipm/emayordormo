@@ -1,13 +1,7 @@
 {
   "timeZone": "Europe/Madrid",
   "dependencies": {
-    "enabledAdvancedServices": [
-      {
-        "userSymbol": "Gmail",
-        "version": "v1",
-        "serviceId": "gmail"
-      }
-    ]
+    "enabledAdvancedServices": []
   },
   "exceptionLogging": "STACKDRIVER",
   "runtimeVersion": "V8"
