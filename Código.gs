@@ -9,7 +9,12 @@
  * CC BY-NC-SA @pfelipm
  */
 
+// Algunas inicializaciones
+
 const EMAYORDOMO = {
+  version: 'Versión: 1.0 (junio 2021)',
+  icono: '🥸',
+  nombre: 'eMayordomo',
   tablaReglas: {
     nombre: '🔀 Reglas',
     colInicioRegla: 0,
@@ -22,8 +27,42 @@ const EMAYORDOMO = {
   },
   simboloOk: '🆗',
   simboloError: '⚠️',
-  maxEmails: 20
+  maxEmails: 20,
+  propActivado: 'activadoPor',
 };
+
+/**
+ * Construye el menú de la aplicación al abrir la hdc de acuerdo con el estado de activación
+ */
+function onOpen() {
+  
+  // Inicializa propiedad que identifica el estado de activación del trigger para las respuestas del formulario
+  let activadoPor = PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado);
+  
+  // Construye menú en función del estado del trigger
+  const menu = SpreadsheetApp.getUi().createMenu(`${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`);  
+  if (!activadoPor) menu.addItem('️▶️ Procesar etiquetas en segundo plano', 'activar');
+  else menu.addItem('⏸️ Dejar de procesar etiquetas en segundo plano', 'desactivar');
+  
+  // Resto del menú (no dinámico)  
+  menu.addItem('🔁 Ejecutar manualmente', 'procesarEmails')
+  .addSeparator()
+  .addItem(`💡 Acerca de ${EMAYORDOMO.nombre}`, 'acercaDe')
+  .addToUi();
+  
+}
+
+/**
+ * Muestra la ventana de información de la aplicación
+ */
+function acercaDe() {
+  
+  let panel = HtmlService.createTemplateFromFile('acercaDe');
+  panel.version = EMAYORDOMO.version;
+  panel.nombre = EMAYORDOMO.nombre;
+  SpreadsheetApp.getUi().showModalDialog(panel.evaluate().setWidth(420).setHeight(450), `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`);
+
+}
 
 function procesarEmails() {
 
@@ -234,7 +273,18 @@ function procesarEmails() {
   }); // De proceso de la regla de cada etiqueta
 
   // Registrar resultados en log >> Mejora: no esperar al final, hacerlo tras procesar cada regla (etiqueta), por ejemplo
-  if (operaciones.length > 0) actualizarLog(operaciones);
+  if (operaciones.length == 0) {
+    operaciones.push(
+      {
+        estado: EMAYORDOMO.simboloOk,
+        tiempo: selloTiempo,
+        etiqueta: '',
+        email: '',
+        plantilla: '',
+        mensaje: 'Sin actividad'
+      });
+  }
+  actualizarLog(operaciones);
 
 }
 
