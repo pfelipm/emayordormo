@@ -27,6 +27,7 @@ const EMAYORDOMO = {
   },
   simboloOk: '🆗',
   simboloError: '⚠️',
+  simboloInfo: 'ℹ️',
   maxEmails: 20,
   propActivado: 'activadoPor',
 };
@@ -37,12 +38,16 @@ const EMAYORDOMO = {
 function onOpen() {
   
   // Inicializa propiedad que identifica el estado de activación del trigger para las respuestas del formulario
-  let activadoPor = PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado);
-  
+  construirMenu(PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado));
+ 
+}
+
+function construirMenu(activadoPor) {
+
   // Construye menú en función del estado del trigger
   const menu = SpreadsheetApp.getUi().createMenu(`${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`);  
-  if (!activadoPor) menu.addItem('️▶️ Procesar etiquetas en segundo plano', 'activar');
-  else menu.addItem('⏸️ Dejar de procesar etiquetas en segundo plano', 'desactivar');
+  if (!activadoPor) menu.addItem('️⏰ Procesar etiquetas cada hora', 'activar');
+  else menu.addItem('⏸️ Dejar de procesar etiquetas cada hora', 'desactivar');
   
   // Resto del menú (no dinámico)  
   menu.addItem('🔁 Ejecutar manualmente', 'procesarEmails')
