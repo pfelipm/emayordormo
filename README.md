@@ -14,8 +14,10 @@ Si por el contrario prefieres conocer esos detalles técnicos que mencionaba, es
 
 Lógicamente también puedes hacer ambas cosas, lo que por otra parte es lo más recomendable, en mi opinión.
 
-# ¿Cómo funciona eMayordomo? :gear:
+# ¿Cómo funciona eMayordomo?
 
 Veamos cómo funciona eMayordomo con un gráfico:
 
-WIP
+# Implementación
+
+# Licencia
