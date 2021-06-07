@@ -125,7 +125,8 @@ function procesarEmails() {
       operaciones.push(
         {
           estado: EMAYORDOMO.simboloError,
-          tiempo: selloTiempo,
+          inicio: selloTiempo,
+          tiempo: new Date(),
           etiqueta: etiqueta,
           email: '',
           plantilla: '',
@@ -142,7 +143,8 @@ function procesarEmails() {
         operaciones.push(
           {
             estado: EMAYORDOMO.simboloError,
-            tiempo: selloTiempo,
+            inicio: selloTiempo,
+            tiempo: new Date(),
             etiqueta: etiqueta,
             email: '',
             plantilla: '',
@@ -164,7 +166,8 @@ function procesarEmails() {
           operaciones.push(
             {
               estado: EMAYORDOMO.simboloError,
-              tiempo: selloTiempo,
+              inicio: selloTiempo,
+              tiempo: new Date(),
               etiqueta: etiqueta,
               email: '',
               plantilla: plantilla,
@@ -246,7 +249,8 @@ function procesarEmails() {
                     operaciones.push(
                       {
                         estado: EMAYORDOMO.simboloOk,
-                        tiempo: selloTiempo,
+                        inicio: selloTiempo,
+                        tiempo: new Date(),
                         etiqueta: etiqueta,
                         email: destinatario,
                         plantilla: plantilla,
@@ -258,7 +262,8 @@ function procesarEmails() {
                     operaciones.push(
                       {
                         estado: EMAYORDOMO.simboloError,
-                        tiempo: selloTiempo,
+                        inicio: selloTiempo,
+                        tiempo: new Date(),
                         etiqueta: etiqueta,
                         email: destinatario,
                         plantilla: plantilla,
@@ -282,7 +287,8 @@ function procesarEmails() {
     operaciones.push(
       {
         estado: EMAYORDOMO.simboloOk,
-        tiempo: selloTiempo,
+        inicio: selloTiempo,
+        tiempo: new Date(),
         etiqueta: '',
         email: '',
         plantilla: '',
@@ -415,8 +421,8 @@ function actualizarLog(registros) {
     const tablaRegistros = registros.map(registro =>
       [
         registro.estado,
+        registro.inicio,
         registro.tiempo,
-        new Date(),
         registro.etiqueta,
         registro.email,
         registro.plantilla,
