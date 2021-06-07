@@ -4,6 +4,8 @@
 
 **eMayordomo** es un script desarrollado con el objetivo de vigilar un buzón de Gmail para **responder automáticamente a ciertos mensajes con respuestas prediseñadas específicas**. Este documento recoge información técnica sobre su funcionamiento, limitaciones y algunos detalles de implementación que tal vez resulten de tu interés.
 
+![Mayordomo de email (Audio Training)](https://user-images.githubusercontent.com/12829262/121064973-872a1200-c7c8-11eb-98ff-e2b68ebbe0c5.gif)
+
 Si simplemente deseas utilizarlo cuanto antes, puedes averiguar rápidamente cómo usarlo y obtener una copia de la plantilla de hoja de cálculo en la que se basa en este artículo en mi blog:
 
 [👉 https://pablofelip.online/emayordomo 👈](https://pablofelip.online/emayordomo)
@@ -14,4 +16,4 @@ Lógicamente también puedes hacer ambas cosas, lo que por otra parte es lo más
 
 # ¿Cómo funciona eMayordomo? :gear:
 
-eMayordomo vive dentro de una hoja de cálculo con dos pestañas:
+Veamos cómo funciona eMayordomo con un gráfico
