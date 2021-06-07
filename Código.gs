@@ -51,6 +51,7 @@ function construirMenu(activadoPor) {
   
   // Resto del menú (no dinámico)  
   menu.addItem('🔁 Ejecutar manualmente', 'procesarEmails')
+  menu.addItem('❓ Comprobar estado', 'comprobarEstado')
   .addSeparator()
   .addItem(`💡 Acerca de ${EMAYORDOMO.nombre}`, 'acercaDe')
   .addToUi();
@@ -286,7 +287,7 @@ function procesarEmails() {
   if (operaciones.length == 0) {
     operaciones.push(
       {
-        estado: EMAYORDOMO.simboloOk,
+        estado: EMAYORDOMO.simboloInfo,
         inicio: selloTiempo,
         tiempo: new Date(),
         etiqueta: '',
