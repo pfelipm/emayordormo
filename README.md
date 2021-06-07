@@ -16,4 +16,6 @@ Lógicamente también puedes hacer ambas cosas, lo que por otra parte es lo más
 
 # ¿Cómo funciona eMayordomo? :gear:
 
-Veamos cómo funciona eMayordomo con un gráfico
+Veamos cómo funciona eMayordomo con un gráfico:
+
+WIP
