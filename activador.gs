@@ -6,7 +6,7 @@ function comprobarEstado() {
   
   const activadoPor = PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado);
   if (activadoPor == '') {
-    mensaje = `${EMAYORDOMO.simboloInfo} No se está vigilando ahora tu buzón de Gmail.`;
+    mensaje = `${EMAYORDOMO.simboloInfo} No se está vigilando tu buzón de Gmail en 2º plano.`;
   } else {
     mensaje = `${EMAYORDOMO.simboloInfo} El proceso en 2º plano ya ha sido activado por ${activadoPor}.`;
   }

@@ -109,7 +109,7 @@ function procesarEmails() {
 
   // Se intenta extraer el nombre del remitente de las respuestas a partir del nombre de la hoja de cálculo >> "texto (remitente)"
   let remitente = SpreadsheetApp.getActiveSpreadsheet().getName().match(/^.+\((.+)\)$/);
-  if (remitente) remitente = remitente[1]
+  if (remitente) remitente = remitente[1];
   // ...en caso contrario, nombre usuario (valor por defecto al enviar emails con GmailApp si no se especifica 'name')
   else remitente = Session.getEffectiveUser().getEmail().match(/^(.+)@.+$/)[1];
 
@@ -407,28 +407,20 @@ function duplicarBorradorAPI(idBorrador) {
 
 /**
  * Anota en la tabla de registro el resultado de una o varias operaciones
- * añadiendo sello de tiempo para la operación
+ * en orden inverso (primero el más reciente)
  * @params {Object[]} registros Vector de elementos a registrar:
- *  { tiempo: >> sello de tiempo
+ *  { estado: >> símbolo de error
+ *    inicio: >> selleo de tiempo del lote de ejecución
+ *    tiempo: >> sello de tiempo del evento
  *    etiqueta: >> etiqueta afectada
  *    email: >> email afectado
  *    plantilla: >> plantilla afectada
- *    estado: >> símbolo de error
  *    mensaje: >> mensaje a registrar }
  */
 function actualizarLog(registros) {
 
   if (registros.map) {
-    const tablaRegistros = registros.map(registro =>
-      [
-        registro.estado,
-        registro.inicio,
-        registro.tiempo,
-        registro.etiqueta,
-        registro.email,
-        registro.plantilla,
-        registro.mensaje
-      ]);
+    const tablaRegistros = registros.reverse();
       
     const hoja = SpreadsheetApp.getActive().getSheetByName(EMAYORDOMO.tablaLog.nombre);
 
