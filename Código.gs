@@ -6,7 +6,8 @@
  * Hay que desactivar la vista 
  * 
  * @OnlyCurrentDoc
- * CC BY-NC-SA @pfelipm
+ * 
+ * Copyright (C) Pablo Felip (@pfelipm) · Se distribuye bajo licencia GNU GPL v3.
  */
 
 // Algunas inicializaciones
