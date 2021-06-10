@@ -271,7 +271,10 @@ function procesarEmails() {
                         mensaje: `Error intederminado al enviar email`
                       });
                   }
-                }       
+                }
+                
+                // Nuevo intento de refrescar el estado de destacado de los mensajes del hilo
+                hilo.refresh();  
               }); // De envío de respuesta  
               
               // hilo.moveToArchive().refresh(); // Esto tampoco elimina estrellas (ni refresca la IU inmediatamete :-/)
@@ -420,8 +423,16 @@ function duplicarBorradorAPI(idBorrador) {
 function actualizarLog(registros) {
 
   if (registros.map) {
-    const tablaRegistros = registros.reverse();
-      
+    const tablaRegistros = registros.reverse().map(registro =>
+      [
+        registro.estado,
+        registro.inicio,
+        registro.tiempo,
+        registro.etiqueta,
+        registro.email,
+        registro.plantilla,
+        registro.mensaje
+      ]);
     const hoja = SpreadsheetApp.getActive().getSheetByName(EMAYORDOMO.tablaLog.nombre);
 
     // Inserta las filas necesarias en la parte superior de la tabla, se tiene en cuenta la situación inicial (filas vacías)

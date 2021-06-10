@@ -4,6 +4,7 @@
  */
 function comprobarEstado() {
   
+  const ssUi = SpreadsheetApp.getUi();
   const activadoPor = PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado);
   if (activadoPor == '') {
     mensaje = `${EMAYORDOMO.simboloInfo} No se está vigilando tu buzón de Gmail en 2º plano.`;
@@ -11,10 +12,10 @@ function comprobarEstado() {
     mensaje = `${EMAYORDOMO.simboloInfo} El proceso en 2º plano ya ha sido activado por ${activadoPor}.`;
   }
 
-  SpreadsheetApp.getUi().alert(
+  ssUi.alert(
     `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
     mensaje,
-    SpreadsheetApp.getUi().ButtonSet.OK);
+    ssUi.ButtonSet.OK);
 
   // Se ejecuta siempre para sincronizar estado del menú cuanto antes cuando hay varias instancias abiertas de la hdc
   construirMenu(PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado));   
@@ -28,14 +29,16 @@ function comprobarEstado() {
  * el buzón de Gmail incorrecto.
  */
 function activar() {
+
+  const ssUi = SpreadsheetApp.getUi();
   
   // ¿El usuario actual es el propietario de la hdc y suponemos que, por ende, del buzón de Gmail que se debe procesar?
   const emailPropietario = DriveApp.getFileById(SpreadsheetApp.getActiveSpreadsheet().getId()).getOwner().getEmail();
   if (emailPropietario != Session.getEffectiveUser().getEmail()) {
-    SpreadsheetApp.getUi().alert(
+    ssUi.alert(
     `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
     `${EMAYORDOMO.simboloInfo} Solo ${emailPropietario} puede activar el proceso en 2º plano.`,
-    SpreadsheetApp.getUi().ButtonSet.OK
+    ssUi.ButtonSet.OK
     );
   } else {
     // Solo gestionaremos el activador si no hay otra instancia del script ya intentándolo
@@ -62,28 +65,28 @@ function activar() {
         // Aquí termina la sección crítica cuando se intenta realizar activación
         mutex.releaseLock();
         
-        SpreadsheetApp.getUi().alert(
+        ssUi.alert(
           `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
           mensaje,
-          SpreadsheetApp.getUi().ButtonSet.OK);
+          ssUi.ButtonSet.OK);
         
       } else {
         
         // Aquí termina la sección crítica cuando *no* se realiza activación porque ya está activado
         mutex.releaseLock();
         
-        SpreadsheetApp.getUi().alert(
+        ssUi.alert(
           `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
           `${EMAYORDOMO.simboloInfo} El proceso en 2º plano ya ha sido activado por ${activadoPor}.`,
-          SpreadsheetApp.getUi().ButtonSet.OK);
+          ssUi.ButtonSet.OK);
       }    
       
     } catch(e) {
       // No ha sido posible obtener acceso al bloque de códido mutex
-      SpreadsheetApp.getUi().alert(
+      ssUi.alert(
         `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
         `${EMAYORDOMO.simboloError} En este momento no es posible activar el proceso en 2º plano, inténtalo más tarde.`,
-        SpreadsheetApp.getUi().ButtonSet.OK);
+        ssUi.ButtonSet.OK);
     }
   
   }
@@ -98,6 +101,8 @@ function activar() {
  * Verifica si algún usuario ha activado el trigger previamente, en ese caso no lo hace de nuevo
  */
 function activarV2() {
+
+  const ssUi = SpreadsheetApp.getUi();
   
   // Solo gestionaremos el activador si no hay otra instancia del script ya intentándolo
   const mutex = LockService.getDocumentLock();
@@ -124,28 +129,28 @@ function activarV2() {
       // Aquí termina la sección crítica cuando se intenta realizar activación
       mutex.releaseLock();
       
-      SpreadsheetApp.getUi().alert(
+      ssUi.alert(
         `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
         mensaje,
-        SpreadsheetApp.getUi().ButtonSet.OK);
+        ssUi.ButtonSet.OK);
       
     } else {
 
       // Aquí termina la sección crítica cuando *no* se realiza activación porque ya está activado
       mutex.releaseLock();
       
-      SpreadsheetApp.getUi().alert(
+      ssUi.alert(
         `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
         `${EMAYORDOMO.simboloInfo} El proceso en 2º plano ya ha sido activado por ${activadoPor}.`,
-        SpreadsheetApp.getUi().ButtonSet.OK);
+        ssUi.ButtonSet.OK);
     }    
     
   } catch(e) {
     // No ha sido posible obtener acceso al bloque de códido mutex
-    SpreadsheetApp.getUi().alert(
+    ssUi.alert(
       `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
       `${EMAYORDOMO.simboloError} En este momento no es posible activar el proceso en 2º plano, inténtalo más tarde.`,
-      SpreadsheetApp.getUi().ButtonSet.OK);
+      ssUi.ButtonSet.OK);
   }
   
   // Se ejecuta siempre para sincronizar estado del menú cuanto antes cuando hay varias instancias abiertas de la hdc
@@ -159,6 +164,7 @@ function activarV2() {
  */
 function desactivar() {
 
+  const ssUi = SpreadsheetApp.getUi();
   const mutex = LockService.getDocumentLock();
   try {
     
@@ -183,10 +189,10 @@ function desactivar() {
       // Aquí termina la sección crítica cuando se intenta realizar desactivación
       mutex.releaseLock();
 
-      SpreadsheetApp.getUi().alert(
+      ssUi.alert(
         `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
         mensaje,
-        SpreadsheetApp.getUi().ButtonSet.OK);
+        ssUi.ButtonSet.OK);
 
     } else {    
 
@@ -198,18 +204,18 @@ function desactivar() {
       } else {
         mensaje = `${EMAYORDOMO.simboloInfo} El proceso en 2º plano debe ser desactivado por ${activadoPor}.`;
       }
-      SpreadsheetApp.getUi().alert(
+      ssUi.alert(
         `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
         mensaje,
-        SpreadsheetApp.getUi().ButtonSet.OK);
+        ssUi.ButtonSet.OK);
     }        
   } catch (e) {
     // No ha sido posible obtener acceso al bloque de códido mutex
 
-    SpreadsheetApp.getUi().alert(
+    ssUi.alert(
       `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
       `${EMAYORDOMO.simboloError} En este momento no es posible desactivar el proceso en 2º plano, inténtalo más tarde.`,
-      SpreadsheetApp.getUi().ButtonSet.OK);
+      ssUi.ButtonSet.OK);
 
   }
   
