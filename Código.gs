@@ -112,8 +112,8 @@ function procesarEmails() {
   // ...en caso contrario, nombre usuario (valor por defecto al enviar emails con GmailApp si no se especifica 'name')
   else remitente = Session.getEffectiveUser().getEmail().match(/^(.+)@.+$/)[1];
 
-  console.info(`Etiquetas a procesar: ${etiquetasReglas}`);
-  console.info(`Borradores encontrados: ${borradores.length}`);
+  // console.info(`Etiquetas a procesar: ${etiquetasReglas}`);
+  // console.info(`Borradores encontrados: ${borradores.length}`);
 
   // Procesar cada etiqueta
   etiquetasReglas.forEach(etiqueta => {
@@ -278,14 +278,14 @@ function procesarEmails() {
               
               // hilo.moveToArchive().refresh(); // Esto tampoco elimina estrellas (ni refresca la IU inmediatamete :-/)
 
-            } // De procesamiento de hilo
+            } // De procesamiento de cada hilo
           }); // De procesamiento de hilos
         } // De comprobación de existencia de plantilla
       } // De comprobación de existencia de regla
     } // De existencia de etiqueta a procesar
   }); // De proceso de la regla de cada etiqueta
 
-  // Registrar resultados en log >> Mejora: no esperar al final, hacerlo tras procesar cada regla (etiqueta), por ejemplo
+  // Escribe eventos en log (hdc) solo al finalizar completamentente la ejecución
   if (operaciones.length == 0) {
     operaciones.push(
       {
