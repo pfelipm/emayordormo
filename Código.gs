@@ -92,7 +92,7 @@ function ejecutarManualmente() {
     ssUi.ButtonSet.OK);
   }
   else {
-    // No hay proceso en 2º plano, veamos quién es el propietario de la hdc
+    // No hay proceso en 2º plano activo, veamos quién es el propietario de la hdc
     const propietario = SpreadsheetApp.getActiveSpreadsheet().getOwner();
     if (propietario) {
       emailPropietario = propietario.getEmail();

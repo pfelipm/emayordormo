@@ -12,7 +12,6 @@ function comprobarEstado() {
     mensaje = `El proceso en 2º plano ha sido activado por ${activadoPor}
     y se está vigilando su buzón de Gmail.`;
   }
-
   ssUi.alert(
     `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
     mensaje,
@@ -22,13 +21,6 @@ function comprobarEstado() {
   construirMenu(PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado));   
 
 }
-
-/**
- * Determina si el usuario que está ejecutando
- * el script es el propietario de la hoja de cálculo (TRUE),
-
- * @returns {boolean|null}
- */
 
 /**
  * Menú >> Activar
