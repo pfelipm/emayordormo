@@ -112,7 +112,6 @@ function activar() {
           `${EMAYORDOMO.simboloError} En este momento no es posible activar el proceso en 2º plano, inténtalo más tarde.`,
           ssUi.ButtonSet.OK);
       }
-    
     }
   }
     
