@@ -41,7 +41,7 @@ function activar() {
 
   const ssUi = SpreadsheetApp.getUi();
   
-  // Comprobar si propietario hdc es usuario actual, ¡getOwner() devuelve null si hdc está en unidad compartida!
+  // Comprobar si propietario de la hdc es usuario actual, ¡getOwner() devuelve null si hdc está en unidad compartida!
   let activar = true;
   let emailPropietario;
   const propietario = SpreadsheetApp.getActiveSpreadsheet().getOwner();
@@ -133,7 +133,7 @@ function activar() {
 
 /**
  * Menú >> Desactivar
- * Trata de eliminar el trigger de tratamiento de respuestas (un usuario nuncano tiene acceso a los triggers de otro)
+ * Trata de eliminar el trigger de tratamiento de respuestas (un usuario nunca tiene acceso a los triggers de otro)
  */
 function desactivar() {
 

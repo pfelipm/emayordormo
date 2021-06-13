@@ -74,7 +74,7 @@ function acercaDe() {
  * Trata de impedir que un usuario distinto al propietario de la hdc realice un proceso manual
  * esto es una medida de seguridad para evitar que eMayordomo actúe sobre el buzón de
  * Gmail incorrecto. La comprobación no es concluyente cuando la hdc reside en una
- * unidad compartida, en ese caso se solicita confirmación al usuario.
+ * unidad compartida, en ese caso se solicita confirmación al usuario para proceder.
  */
 function ejecutarManualmente() {
 
@@ -88,11 +88,10 @@ function ejecutarManualmente() {
     ssUi.alert(
     `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
     `${EMAYORDOMO.simboloError} Ya hay un proceso en 2º plano activado por ${emailPropietario}, no parece
-    buena idea que un usuario distinto (tú) realice una ejecución manual.`,
+    buena idea que un usuario distinto (¡tú!) realice un procesado manual.`,
     ssUi.ButtonSet.OK);
   }
   else {
-
     // No hay proceso en 2º plano, veamos quién es el propietario de la hdc
     const propietario = SpreadsheetApp.getActiveSpreadsheet().getOwner();
     if (propietario) emailPropietario = propietario.getEmail();
