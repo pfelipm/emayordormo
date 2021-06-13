@@ -79,50 +79,53 @@ function acercaDe() {
 function ejecutarManualmente() {
 
   const ssUi = SpreadsheetApp.getUi();
-  let emailPropietario;
   const activadoPor = PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado);
-  const emailUsuarioActivo = Session.getEffectiveUser().getEmail();  
+  const emailUsuarioActivo = Session.getEffectiveUser().getEmail();
+  let ejecutar = true;
 
-  // ¿Otro usuario ha realizado ya la activación?
-  if (activadoPor != '' && activadoPor != emailUsuarioActivo) {
+  // [1] ¿Otro usuario ha realizado ya la activación?
+  if (activadoPor && activadoPor != emailUsuarioActivo) {
     ssUi.alert(
     `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
-    `${EMAYORDOMO.simboloError} Ya hay un proceso en 2º plano activado por ${emailPropietario}, no parece
+    `${EMAYORDOMO.simboloError} Ya hay un proceso en 2º plano activado por ${activadoPor}, no parece
     buena idea que un usuario distinto (¡tú!) realice un procesado manual.`,
     ssUi.ButtonSet.OK);
   }
   else {
-    // No hay proceso en 2º plano activo, veamos quién es el propietario de la hdc
+    // No hay proceso en 2º plano activo, veamos quién es el propietario de la hdc ¡getOwner() devuelve null si hdc está en unidad compartida!
+    let emailPropietario;
     const propietario = SpreadsheetApp.getActiveSpreadsheet().getOwner();
     if (propietario) {
       emailPropietario = propietario.getEmail();
     } else {
       emailPropietario = null;
     }
-    // Si la hdc está en unidad compartida solicitar confirmación para proseguir
-    if (!emailPropietario) {
-      if (ssUi.alert(
+    // [2] Si la hdc está en unidad compartida y el proceso en 2º plano no ha sido activado por el usuario actual solicitar confirmación para proseguir
+    if (!emailPropietario && activadoPor != emailUsuarioActivo) {
+      ejecutar = ssUi.alert(
         `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
         `Solo el propietario del buzón de Gmail en el que se han definido las reglas de
         filtrado, etiquetas y borradores debe realizar un procesado manual.
         
         ¿Seguro que deseas continuar?`,
-        ssUi.ButtonSet.OK_CANCEL
-      ) == ssUi.Button.OK) {
-        // Ejecutar proceso sobre el buzón de Gmail
-        procesarEmails();
-        ssUi.alert(
-          `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
-          `Ejecución manual terminada. Revisa la hoja ${EMAYORDOMO.tablaLog.nombre}.`,
-          ssUi.ButtonSet.OK);
-      } else {
-        // Activación cancelada
-        ssUi.alert(
-          `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
-          `Ejecución manual cancelada.`,
-          ssUi.ButtonSet.OK);
-      }
-    } 
+        ssUi.ButtonSet.OK_CANCEL) == ssUi.Button.OK;
+    }
+    
+    // Seguir con ejecución manual a menos que se haya cancelado en [2]
+    if (ejecutar) {
+      // Ejecutar proceso sobre el buzón de Gmail
+      procesarEmails();
+      ssUi.alert(
+        `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+        `Ejecución manual terminada. Revisa la hoja ${EMAYORDOMO.tablaLog.nombre}.`,
+        ssUi.ButtonSet.OK);
+    } else {
+      // Activación cancelada
+      ssUi.alert(
+        `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+        `Ejecución manual cancelada.`,
+        ssUi.ButtonSet.OK);
+    }
   }
 
 }
