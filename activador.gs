@@ -97,6 +97,7 @@ function activar() {
 }
 
 /**
+  * /// NO UTILIZADO > Finalmente opto por limitar la activación ///
  * Menú >> Activar
  * Verifica si algún usuario ha activado el trigger previamente, en ese caso no lo hace de nuevo
  */

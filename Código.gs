@@ -51,9 +51,9 @@ function construirMenu(activadoPor) {
   // Resto del menú (no dinámico)  
   menu.addItem('🔁 Ejecutar manualmente', 'procesarEmails')
   menu.addItem('❓ Comprobar estado', 'comprobarEstado')
-  .addSeparator()
-  .addItem(`💡 Acerca de ${EMAYORDOMO.nombre}`, 'acercaDe')
-  .addToUi();
+    .addSeparator()
+    .addItem(`💡 Acerca de ${EMAYORDOMO.nombre}`, 'acercaDe')
+    .addToUi();
   
 }
 
@@ -364,7 +364,7 @@ function etiquetasMensaje(msg, etiqueta) {
 }
 
 /**
- * NO UTILIZADO
+ * /// NO UTILIZADO ///
  * Crea un duplicado del borrador cuyo id se pasa como parámetro,
  * incluyendo cuerpo html, imágenes en línea y adjuntos.
  * 
