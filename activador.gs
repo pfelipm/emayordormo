@@ -7,9 +7,10 @@ function comprobarEstado() {
   const ssUi = SpreadsheetApp.getUi();
   const activadoPor = PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado);
   if (activadoPor == '') {
-    mensaje = `${EMAYORDOMO.simboloInfo} No se está vigilando tu buzón de Gmail en 2º plano.`;
+    mensaje = `No se está vigilando el buzón de Gmail en 2º plano.`;
   } else {
-    mensaje = `${EMAYORDOMO.simboloInfo} El proceso en 2º plano ya ha sido activado por ${activadoPor}.`;
+    mensaje = `El proceso en 2º plano ha sido activado por ${activadoPor}
+    y se está vigilando su buzón de Gmail.`;
   }
 
   ssUi.alert(
@@ -112,7 +113,7 @@ function activar() {
         
         ssUi.alert(
           `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
-          `${EMAYORDOMO.simboloInfo} El proceso en 2º plano ya ha sido activado por ${activadoPor}.`,
+          `${EMAYORDOMO.simboloError} El proceso en 2º plano ya ha sido activado por ${activadoPor}.`,
           ssUi.ButtonSet.OK);
       }    
       
@@ -151,7 +152,7 @@ function desactivar() {
       const resultado = gestionarTrigger('OFF');
       let mensaje;
       if (resultado == 'OK') {     
-        mensaje = `${EMAYORDOMO.simboloInfo} Ya no se está vigilando tu buzón de Gmail`;
+        mensaje = `Ya no se está vigilando el buzón de Gmail de ${activadoPor}.`;
         PropertiesService.getDocumentProperties().setProperty(EMAYORDOMO.propActivado, '');
       } else {
         mensaje = `${EMAYORDOMO.simboloError} Se ha producido un error al desactivar el proceso en 2º plano: 
@@ -173,9 +174,9 @@ function desactivar() {
       mutex.releaseLock();
 
       if (activadoPor == '') {
-        mensaje = `${EMAYORDOMO.simboloInfo} El proceso en 2º plano no está activado.`;
+        mensaje = `${EMAYORDOMO.simboloError} El proceso en 2º plano no está activado.`;
       } else {
-        mensaje = `${EMAYORDOMO.simboloInfo} El proceso en 2º plano debe ser desactivado por ${activadoPor}.`;
+        mensaje = `${EMAYORDOMO.simboloError} El proceso en 2º plano debe ser desactivado por ${activadoPor}.`;
       }
       ssUi.alert(
         `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
