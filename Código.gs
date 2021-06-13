@@ -340,7 +340,7 @@ function procesarEmails() {
               
               hilo.moveToArchive().refresh();
 
-            } // De procesamiento de cada hilo
+            } // De procesamiento de mensajes de cada hilo
           }); // De procesamiento de hilos
         } // De comprobación de existencia de plantilla
       } // De comprobación de existencia de regla
