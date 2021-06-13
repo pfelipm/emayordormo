@@ -109,9 +109,16 @@ function ejecutarManualmente() {
         
         ¿Seguro que deseas continuar?`,
         ssUi.ButtonSet.OK_CANCEL) == ssUi.Button.OK;
+    } else if (emailPropietario && emailPropietario != emailUsuarioActivo) {
+      // [3] Cancelar ejecución si se puede determinar que el usuario actual no es el propietario de la hdc
+      ssUi.alert(
+      `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+      `${EMAYORDOMO.simboloError} Solo ${emailPropietario} debe realizar un procesado manual.`,
+      ssUi.ButtonSet.OK);
+      ejecutar = false;
     }
     
-    // Seguir con ejecución manual a menos que se haya cancelado en [2]
+    // Seguir con ejecución manual a menos que se haya cancelado en [2] o [3]
     if (ejecutar) {
       // Ejecutar proceso sobre el buzón de Gmail
       procesarEmails();

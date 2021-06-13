@@ -33,7 +33,7 @@ function activar() {
 
   const ssUi = SpreadsheetApp.getUi();
   let emailPropietario;
-  let activar;
+  let activar = true;
   const activadoPor = PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado);
   
   // [1] Cancelar si ya está activado
