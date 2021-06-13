@@ -96,8 +96,7 @@ function ejecutarManualmente() {
     const propietario = SpreadsheetApp.getActiveSpreadsheet().getOwner();
     if (propietario) {
       emailPropietario = propietario.getEmail();
-    }
-    else {
+    } else {
       emailPropietario = null;
     }
     // Si la hdc está en unidad compartida solicitar confirmación para proseguir
@@ -170,8 +169,7 @@ function procesarEmails() {
   let remitente = SpreadsheetApp.getActiveSpreadsheet().getName().match(/^.+\((.+)\)$/);
   if (remitente) {
     remitente = remitente[1];
-  }
-  else {
+  } else {
     // ...en caso contrario, nombre usuario (valor por defecto al enviar emails con GmailApp si no se especifica 'name')
     remitente = Session.getEffectiveUser().getEmail().match(/^(.+)@.+$/)[1];
   }
@@ -307,7 +305,7 @@ function procesarEmails() {
                         name: remitente
                       });
 
-                    // ¡No se refrescan en Gmail, aunque realmente sin estrella! >>  https://issuetracker.google.com/issues/77320923
+                    // El estado "destacado" no se refresca visualmente (sí internamente) sí ha sido establecido *manualmente* >>  https://issuetracker.google.com/issues/77320923
                     mensaje.unstar().markRead().refresh();
 
                     operaciones.push(
@@ -336,11 +334,11 @@ function procesarEmails() {
                   }
                 }
                 
-                // Nuevo intento de refrescar el estado de destacado de los mensajes del hilo
+                // Refresca hilo para que .hasStarredMessages() devuelva el valor correcto inmediatamente >> https://stackoverflow.com/a/65515913
                 hilo.refresh();  
               }); // De envío de respuesta  
               
-              // hilo.moveToArchive().refresh(); // Esto tampoco elimina estrellas (ni refresca la IU inmediatamete :-/)
+              hilo.moveToArchive().refresh();
 
             } // De procesamiento de cada hilo
           }); // De procesamiento de hilos

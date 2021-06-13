@@ -40,8 +40,7 @@ function activar() {
   const emailUsuarioActivo = Session.getEffectiveUser().getEmail();
   if (propietario) {
     emailPropietario = propietario.getEmail();
-  }
-  else {
+  } else {
     emailPropietario = null;
   }
 
