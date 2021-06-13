@@ -49,7 +49,7 @@ function construirMenu(activadoPor) {
   else menu.addItem('⏸️ Dejar de procesar etiquetas cada hora', 'desactivar');
   
   // Resto del menú (no dinámico)  
-  menu.addItem('🔁 Ejecutar manualmente', 'procesarEmails')
+  menu.addItem('🔁 Ejecutar manualmente', 'ejecutarManualmente')
   menu.addItem('❓ Comprobar estado', 'comprobarEstado')
     .addSeparator()
     .addItem(`💡 Acerca de ${EMAYORDOMO.nombre}`, 'acercaDe')
@@ -68,6 +68,64 @@ function acercaDe() {
   SpreadsheetApp.getUi().showModalDialog(panel.evaluate().setWidth(420).setHeight(450), `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`);
 
 }
+
+/**
+ * Menú >> Ejecutar manualmente la función procesarEmails(),
+ * Trata de impedir que un usuario distinto al propietario de la hdc realice un proceso manual
+ * esto es una medida de seguridad para evitar que eMayordomo actúe sobre el buzón de
+ * Gmail incorrecto. La comprobación no es concluyente cuando la hdc reside en una
+ * unidad compartida, en ese caso se solicita confirmación al usuario.
+ */
+function ejecutarManualmente() {
+
+  const ssUi = SpreadsheetApp.getUi();
+  let emailPropietario;
+  const activadoPor = PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado);
+  const emailUsuarioActivo = Session.getEffectiveUser().getEmail();  
+
+  // ¿Otro usuario ha realizado ya la activación?
+  if (activadoPor != '' && activadoPor != emailUsuarioActivo) {
+    ssUi.alert(
+    `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+    `${EMAYORDOMO.simboloError} Ya hay un proceso en 2º plano activado por ${emailPropietario}, no parece
+    buena idea que un usuario distinto (tú) realice una ejecución manual.`,
+    ssUi.ButtonSet.OK);
+  }
+  else {
+
+    // No hay proceso en 2º plano, veamos quién es el propietario de la hdc
+    const propietario = SpreadsheetApp.getActiveSpreadsheet().getOwner();
+    if (propietario) emailPropietario = propietario.getEmail();
+    else emailPropietario = null;
+
+    // Si la hdc está en unidad compartida solicitar confirmación para proseguir
+    if (!emailPropietario) {
+      if (ssUi.alert(
+        `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+        `Solo el propietario del buzón de Gmail en el que se han definido las reglas de
+        filtrado, etiquetas y borradores debe realizar un procesado manual.
+        
+        ¿Seguro que deseas continuar?`,
+        ssUi.ButtonSet.OK_CANCEL
+      ) == ssUi.Button.OK) {
+        // Ejecutar proceso sobre el buzón de Gmail
+        procesarEmails();
+        ssUi.alert(
+          `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+          `Ejecución manual terminada. Revisa la hoja ${EMAYORDOMO.tablaLog.nombre}.`,
+          ssUi.ButtonSet.OK);
+      } else {
+        // Activación cancelada
+        ssUi.alert(
+          `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+          `Ejecución manual cancelada.`,
+          ssUi.ButtonSet.OK);
+      }
+    } 
+  }
+
+}
+
 
 function procesarEmails() {
 

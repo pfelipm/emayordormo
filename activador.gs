@@ -68,13 +68,12 @@ function activar() {
     }
   }
 
-  // Cancelar activación si el usuario actual no es el propietario de la hdc
+  // Cancelar activación si se ha podido determinar que el usuario actual no es el propietario de la hdc
   if (emailPropietario && emailPropietario != emailUsuarioActivo) {
     ssUi.alert(
     `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
     `Solo ${emailPropietario} puede activar el proceso en 2º plano.`,
-    ssUi.ButtonSet.OK
-    );
+    ssUi.ButtonSet.OK);
   } else if (activar) {
 
     // Solo gestionaremos el activador si no hay otra instancia del script ya intentándolo
