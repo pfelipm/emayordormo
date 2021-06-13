@@ -3,8 +3,6 @@
  * Un script que envía respuestas enlatadas de acuerdo con las etiquetas 
  * y marca de destacados que se detectan en los mensajes recibidos. 
  *
- * Hay que desactivar la vista 
- * 
  * @OnlyCurrentDoc
  * 
  * Copyright (C) Pablo Felip (@pfelipm) · Se distribuye bajo licencia GNU GPL v3.
