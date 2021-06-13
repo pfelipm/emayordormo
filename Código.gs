@@ -94,9 +94,12 @@ function ejecutarManualmente() {
   else {
     // No hay proceso en 2º plano, veamos quién es el propietario de la hdc
     const propietario = SpreadsheetApp.getActiveSpreadsheet().getOwner();
-    if (propietario) emailPropietario = propietario.getEmail();
-    else emailPropietario = null;
-
+    if (propietario) {
+      emailPropietario = propietario.getEmail();
+    }
+    else {
+      emailPropietario = null;
+    }
     // Si la hdc está en unidad compartida solicitar confirmación para proseguir
     if (!emailPropietario) {
       if (ssUi.alert(
@@ -165,9 +168,13 @@ function procesarEmails() {
 
   // Se intenta extraer el nombre del remitente de las respuestas a partir del nombre de la hoja de cálculo >> "texto (remitente)"
   let remitente = SpreadsheetApp.getActiveSpreadsheet().getName().match(/^.+\((.+)\)$/);
-  if (remitente) remitente = remitente[1];
-  // ...en caso contrario, nombre usuario (valor por defecto al enviar emails con GmailApp si no se especifica 'name')
-  else remitente = Session.getEffectiveUser().getEmail().match(/^(.+)@.+$/)[1];
+  if (remitente) {
+    remitente = remitente[1];
+  }
+  else {
+    // ...en caso contrario, nombre usuario (valor por defecto al enviar emails con GmailApp si no se especifica 'name')
+    remitente = Session.getEffectiveUser().getEmail().match(/^(.+)@.+$/)[1];
+  }
 
   // console.info(`Etiquetas a procesar: ${etiquetasReglas}`);
   // console.info(`Borradores encontrados: ${borradores.length}`);
@@ -415,8 +422,12 @@ function etiquetasMensaje(msg, etiqueta) {
   etiquetas = Gmail.Users.Messages.get('me', id).labelIds;
   console.info(etiquetas)
   
-  if (etiquetas.map) return etiquetas.includes(idEtiqueta);
-  else return false;
+  if (etiquetas.map) {
+    return etiquetas.includes(idEtiqueta);
+  }
+  else {
+    return false;
+  }
 
 }
 

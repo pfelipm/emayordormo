@@ -46,8 +46,12 @@ function activar() {
   let emailPropietario;
   const propietario = SpreadsheetApp.getActiveSpreadsheet().getOwner();
   const emailUsuarioActivo = Session.getEffectiveUser().getEmail();
-  if (propietario) emailPropietario = propietario.getEmail();
-  else emailPropietario = null;
+  if (propietario) {
+    emailPropietario = propietario.getEmail();
+  }
+  else {
+    emailPropietario = null;
+  }
 
   // Si la hdc está en unidad compartida solicitar confirmación para proseguir (activar no ha pasado a ser false)
   if (!emailPropietario) {
