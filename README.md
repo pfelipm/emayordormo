@@ -2,7 +2,7 @@
 
 **\*\*\* En construcción \*\*\***
 
-# eMayordormo
+# ¿Qué es eMayordormo?
 
 **eMayordomo** es un script desarrollado con el objetivo de vigilar un buzón de Gmail para **responder automáticamente a ciertos mensajes con respuestas prediseñadas específicas**. Este documento recoge información técnica sobre su funcionamiento, limitaciones y algunos detalles de implementación que tal vez resulten de tu interés.
 
