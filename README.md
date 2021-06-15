@@ -36,7 +36,7 @@ eMayordomo es un script que reside en una hoja de cálculo de Google. Esta hoja 
 *   Configurar el script (pestaña 🔀 **Reglas**).
 *   Mostrar un registro de eventos de funcionamiento (pestaña 🗒️ **Registro**).
 
-Aunque, evidentemente, las hojas de cálculo no constituyen en general el mejor modo de construir una interfaz de usuario, lo cierto es que hay unas cuantas cosas que podemos hacer para reducir la fricción cuando se utilizan como tal, un hecho extremadamente frecuente en innumerables desarrollos basados en Apps Script. Algunas de sus características integradas tales como los [intervalos protegidos](https://support.google.com/docs/answer/1218656), el [formato condicional](https://support.google.com/docs/answer/78413), la validación de datos o incluso las notas pueden resultar de gran ayuda en esos casos para conseguirlo.
+Aunque, evidentemente, las hojas de cálculo no constituyen en general el mejor modo de construir una interfaz de usuario, lo cierto es que hay unas cuantas cosas que podemos hacer para reducir la fricción cuando se utilizan como tal, un hecho extremadamente frecuente en innumerables desarrollos basados en Apps Script. Algunas de sus características integradas tales como los [intervalos protegidos](https://support.google.com/docs/answer/1218656), el [formato condicional](https://support.google.com/docs/answer/78413), la validación de datos o incluso la inserción de notas en celdas pueden resultar de gran ayuda en esos casos para conseguirlo.
 
 ## Pestaña 🔀 **Reglas**
 
@@ -44,9 +44,21 @@ Aunque, evidentemente, las hojas de cálculo no constituyen en general el mejor 
 
 Las columnas A - D son las utilizadas para ajustar la configuración del script. El resto (E - H, con encabezado de azul más claro), contienen una serie de fórmulas matriciales que resumen los datos contenidos en la pestaña de registro (a continuación). Se ha [protegido](https://support.google.com/docs/answer/1218656?co=GENIE.Platform%3DDesktop&hl=es) el intervalo E1:H11 para evitar ediciones accidentales que pudieran romper las fórmulas.
 
-*   Se utilizan reglas de formato condicional
+Formato condicional en casilla de verificación
+
+Formato condicional en toda la fila (rojo)
+
+Notas en B1, C1, D1
+
+Validación en B para evitar repetición de etiqueta en regla
+
+Arrayformula en encabezado para contar nº envíos OK y fecha último
+
+Arrayformula en encabezado para contar nº envíos KO y fecha último
 
 ## Pestaña 🗒️ **Registro**
+
+Filtros "integrados" en la fila 1 para localizar la información. El script anota los elementos más recientes en la parte superior
 
 # Implementación
 
