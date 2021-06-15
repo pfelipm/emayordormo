@@ -4,7 +4,7 @@
 
 *   [¿Qué es eMayordormo?](#qu%C3%A9-es-emayordormo)
 *   [¿Cómo funciona eMayordomo?](#c%C3%B3mo-funciona-emayordomo)
-*   [La hoja de cálculo](la-hoja-de-c%C3%A1lculo)
+*   [La hoja de cálculo](#la-hoja-de-c%C3%A1lculo)
     *   [Pestaña 🔀 Reglas](#pesta%C3%B1a--reglas)
     *   [Pestaña 🗒️ Registro](#pesta%C3%B1a-%EF%B8%8F-registro)
 *   [Implementación](#implementaci%C3%B3n)
