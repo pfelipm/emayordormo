@@ -70,22 +70,32 @@ Filtros "integrados" en la fila 1 para localizar la información. El script anot
 
 ## Activador.gs
 
+### comprobarEstado()
+
+### activar()
+
+### desactivar()
+
+### gestionarTrigger()
+
 ## Código.gs
 
-onOpen()
+### onOpen()
 
-construirMenu()
+### construirMenu()
 
-acercaDe()
+### acercaDe()
 
-ejecutarManualmente()
+### ejecutarManualmente()
 
-procesarEmails()
+### procesarEmails()
 
-etiquetasMensaje()
+### etiquetasMensaje()
 
-duplicarBorradorAPI() y extraerElementos()
+### duplicarBorradorAPI() y extraerElementos()
 
-actualizarLog()
+### actualizarLog()
 
 # Licencia
+
+© 2021 Pablo Felip Monferrer ([@pfelipm](https://twitter.com/pfelipm)). Se distribuye bajo licencia GNU GPL v3.
