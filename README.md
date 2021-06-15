@@ -16,7 +16,9 @@ Lógicamente también puedes hacer ambas cosas, lo que por otra parte es lo más
 
 # ¿Cómo funciona eMayordomo?
 
-En el artículo mencionado anteriormente se facilitan las [especificaciones](https://pablofelip.online/emayordomo/#mcetoc_1f7masso32l) de eMayordomo para, a continuación, explicar [cómo se han llegado a satisfacer](https://pablofelip.online/emayordomo/#mcetoc_1f7m9lbio2h). No obstante, en este diagrama te muestro el funcionamiento general del script para centrar la discusión posterior sobre algunos de sus aspectos técnicos.
+En el artículo mencionado anteriormente se facilitan las [especificaciones](https://pablofelip.online/emayordomo/#mcetoc_1f7masso32l) de eMayordomo para, a continuación, explicar [cómo se han llegado a satisfacer](https://pablofelip.online/emayordomo/#mcetoc_1f7m9lbio2h).
+
+No obstante, repasemos el funcionamiento general del script para centrar la discusión antes de abordar algunos de los aspectos técnicos de su implementación.
 
 ![Diagrama de eMayordomo](https://docs.google.com/drawings/d/e/2PACX-1vS6_mjaL-sZabk3piQYjGwOQWytUsRRnmE-Khrijj5hs_A8ivxCeO0tha1YKW4wGKnQXS0BXVTA8PIp/pub?w=1000&h=1000)
 
@@ -32,12 +34,12 @@ Podemos resumir todo esto de manera rápida en 7 **pasos**:
 
 # El diseño de la hoja de cálculo
 
-eMayordomo es un script que reside en una hoja de cálculo de Google, que además se utiliza con dos finalidades:
+eMayordomo es un script que reside en una hoja de cálculo de Google. Esta hoja de cálculo, además, sirve a dos propósitos:
 
 *   Configurar el script (pestaña 🔀 **Reglas**).
 *   Mostrar un registro de eventos de funcionamiento (pestaña 🗒️ **Registro**).
 
-Aunque, evidentemente, las hojas de cálculo no constituyen, en general, el mejor modo de construir una interfaz de usuario, lo cierto es que hay unas cuantas cosas que podemos hacer para reducir la fricción cuando se utilizan como tal, un hecho extremadamente frecuente en innumerables desarrollos Apps Script. Algunas características integradas tales como los [intervalos protegidos](https://support.google.com/docs/answer/1218656), el [formato condicional](https://support.google.com/docs/answer/78413), la validación de datos o incluso las notas pueden resultar de gran ayuda en esos casos para conseguirlo.
+Aunque, evidentemente, las hojas de cálculo no constituyen en general el mejor modo de construir una interfaz de usuario, lo cierto es que hay unas cuantas cosas que podemos hacer para reducir la fricción cuando se utilizan como tal, un hecho extremadamente frecuente en innumerables desarrollos basados en Apps Script. Algunas de sus características integradas tales como los [intervalos protegidos](https://support.google.com/docs/answer/1218656), el [formato condicional](https://support.google.com/docs/answer/78413), la validación de datos o incluso las notas pueden resultar de gran ayuda en esos casos para conseguirlo.
 
 ## Pestaña 🔀 **Reglas**
 
@@ -45,7 +47,7 @@ Aunque, evidentemente, las hojas de cálculo no constituyen, en general, el mejo
 
 Las columnas A - D son las utilizadas para ajustar la configuración del script. El resto (E - H, con encabezado de azul más claro), contienen una serie de fórmulas matriciales que resumen los datos contenidos en la pestaña de registro (a continuación). Se ha [protegido](https://support.google.com/docs/answer/1218656?co=GENIE.Platform%3DDesktop&hl=es) el intervalo E1:H11 para evitar ediciones accidentales que pudieran romper las fórmulas.
 
-*   Se utilizan reglas de formato condicional 
+*   Se utilizan reglas de formato condicional
 
 ## Pestaña 🗒️ **Registro**
 
