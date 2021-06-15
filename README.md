@@ -1,10 +1,10 @@
-![Banner repo](https://user-images.githubusercontent.com/12829262/122108541-9b02f300-ce1c-11eb-951e-784f99ad65a6.png)
+![](https://user-images.githubusercontent.com/12829262/122110050-6132ec00-ce1e-11eb-99f8-e0ce463c6cd6.png)
 
 # eMayordormo
 
 **eMayordomo** es un script desarrollado con el objetivo de vigilar un buzón de Gmail para **responder automáticamente a ciertos mensajes con respuestas prediseñadas específicas**. Este documento recoge información técnica sobre su funcionamiento, limitaciones y algunos detalles de implementación que tal vez resulten de tu interés.
 
-![Mayordomo de email (Audio Training) - Hojas de cálculo de Google](https://user-images.githubusercontent.com/12829262/122108556-9fc7a700-ce1c-11eb-9ec3-04f5573de035.gif)
+![](https://user-images.githubusercontent.com/12829262/122110114-7740ac80-ce1e-11eb-96b4-70304088d53b.gif)
 
 Si simplemente deseas utilizarlo cuanto antes, puedes averiguar rápidamente cómo usarlo y obtener una copia de la plantilla de hoja de cálculo en la que se basa en este artículo en mi blog:
 
@@ -40,6 +40,8 @@ eMayordomo es un script que reside en una hoja de cálculo de Google, que ademá
 *   Mostrar un registro de eventos y acciones (pestaña 🗒️ **Registro**).
 
 ## Pestaña 🔀 **Reglas**
+
+![](https://user-images.githubusercontent.com/12829262/122110014-537d6680-ce1e-11eb-8320-d4308c526abf.png)
 
 ## Pestaña 🗒️ **Registro**
 
