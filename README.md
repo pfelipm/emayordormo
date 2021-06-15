@@ -2,6 +2,8 @@
 
 **\*\*\* En construcción \*\*\***
 
+# Tabla de contenidos
+
 *   [¿Qué es eMayordormo?](#qu%C3%A9-es-emayordormo)
 *   [¿Cómo funciona eMayordomo?](#c%C3%B3mo-funciona-emayordomo)
 *   [La hoja de cálculo](#la-hoja-de-c%C3%A1lculo)
