@@ -12,7 +12,8 @@
     *   [acercaDe.html](#acercadehtml)
     *   [Activador.gs](#activadorgs)
     *   [Código.gs](#c%C3%B3digogs)
-*   \[acercaDe.html(#licencia)
+    *   [acercaDe.html](#licencia)
+*   [Licencia](#licencia)
 
 # ¿Qué es eMayordormo?
 
