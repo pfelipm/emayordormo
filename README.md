@@ -25,7 +25,7 @@ No obstante, repasemos el funcionamiento general del script para centrar la disc
 1.  Un usuario rellena un formulario web de contacto.
 2.  El formulario envía una notificación por correo electrónico a un buzón de Gmail.
 3.  El correo entrante es clasificando utilizado los filtros de Gmail. Se aplican etiquetas diferenciadoras y se marcan los mensajes como destacados ⭐ para indicar que aún no han sido respondidos.
-4.  Cada una de las etiquetas anteriores llevará asociada una respuesta predefinida. Estas respuestas se construyen a partir de una serie de mensajes en borrador, en cuyo asunto se utilizan prefijos, siempre entre corchetes y con un espacio posterior, para que el script pueda identificarlos con facilidad.
+4.  Cada una de las etiquetas anteriores llevará asociada una respuesta predefinida. Estas respuestas se construyen a partir de una serie de mensajes en borrador, en cuyo asunto se utilizan prefijos distintivos, siempre entre corchetes y con un espacio posterior para que el script pueda identificarlos con facilidad.
 5.  Para establecer los emparejamientos (etiqueta, borrador) se recurre a una tabla de reglas en una hoja de cálculo de Google, en la que a cada etiqueta se le asocia uno de los prefijos utilizados en los asuntos de los borradores.
 6.  Cada regla cuenta, opcionalmente, con una expresión regular para extraer la dirección de email a la que se debe responder del propio contenido del mensaje.
 7.  La hoja de cálculo dispone de un menú específico para el script que permite activarlo, es decir, construir un [activador (trigger) instalable](https://developers.google.com/apps-script/guides/triggers/installable) que se ejecuta cada hora. No se ha contemplado la posibilidad de permitir la selección de otras periodicidades.
