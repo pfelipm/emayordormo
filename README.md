@@ -1,10 +1,10 @@
-![](https://user-images.githubusercontent.com/12829262/121048420-129aa780-c7b7-11eb-87da-0f0c1a6dd578.png)
+![Banner repo](https://user-images.githubusercontent.com/12829262/122108541-9b02f300-ce1c-11eb-951e-784f99ad65a6.png)
 
 # eMayordormo
 
 **eMayordomo** es un script desarrollado con el objetivo de vigilar un buzón de Gmail para **responder automáticamente a ciertos mensajes con respuestas prediseñadas específicas**. Este documento recoge información técnica sobre su funcionamiento, limitaciones y algunos detalles de implementación que tal vez resulten de tu interés.
 
-![Mayordomo de email (Audio Training)](https://user-images.githubusercontent.com/12829262/121064973-872a1200-c7c8-11eb-98ff-e2b68ebbe0c5.gif)
+![Mayordomo de email (Audio Training) - Hojas de cálculo de Google](https://user-images.githubusercontent.com/12829262/122108556-9fc7a700-ce1c-11eb-9ec3-04f5573de035.gif)
 
 Si simplemente deseas utilizarlo cuanto antes, puedes averiguar rápidamente cómo usarlo y obtener una copia de la plantilla de hoja de cálculo en la que se basa en este artículo en mi blog:
 
@@ -18,7 +18,7 @@ Lógicamente también puedes hacer ambas cosas, lo que por otra parte es lo más
 
 En el artículo mencionado anteriormente se facilitan las [especificaciones](https://pablofelip.online/emayordomo/#mcetoc_1f7masso32l) de eMayordomo para, a continuación, explicar [cómo se han llegado a satisfacer](https://pablofelip.online/emayordomo/#mcetoc_1f7m9lbio2h).
 
-No obstante, representemos en un diagrama el funcionamiento del script para centrar la discusión sobre algunos de sus aspectos técnicos.
+No obstante, en este diagrama te muestro el funcionamiento general del script para centrar la discusión sobre algunos de sus aspectos técnicos.
 
 ![Diagrama de eMayordomo](https://docs.google.com/drawings/d/e/2PACX-1vS6_mjaL-sZabk3piQYjGwOQWytUsRRnmE-Khrijj5hs_A8ivxCeO0tha1YKW4wGKnQXS0BXVTA8PIp/pub?w=1000&h=1000)
 
@@ -33,6 +33,15 @@ Podemos resumir todo esto de manera rápida en 7 **pasos**:
 7.  Una serie de fórmulas en la tabla de reglas analizan en continuo los datos del registro de ejecución para obtener métricas de ejecución relativas diferenciadas.
 
 # El diseño de la hoja de cálculo
+
+eMayordomo es un script que reside en una hoja de cálculo de Google, que además se utiliza con dos finalidades:
+
+*   Configurar el funcionamiento del script (pestaña 🔀 **Reglas**).
+*   Mostrar un registro de eventos y acciones (pestaña 🗒️ **Registro**).
+
+## Pestaña 🔀 **Reglas**
+
+## Pestaña 🗒️ **Registro**
 
 # Implementación
 
