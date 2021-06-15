@@ -1,5 +1,7 @@
 ![](https://user-images.githubusercontent.com/12829262/122110050-6132ec00-ce1e-11eb-99f8-e0ce463c6cd6.png)
 
+**\*\*\* En construcción \*\*\***
+
 # eMayordormo
 
 **eMayordomo** es un script desarrollado con el objetivo de vigilar un buzón de Gmail para **responder automáticamente a ciertos mensajes con respuestas prediseñadas específicas**. Este documento recoge información técnica sobre su funcionamiento, limitaciones y algunos detalles de implementación que tal vez resulten de tu interés.
@@ -58,7 +60,7 @@ Arrayformula en encabezado para contar nº envíos KO y fecha último
 
 ## Pestaña 🗒️ **Registro**
 
-Filtros "integrados" en la fila 1 para localizar la información. El script anota los elementos más recientes en la parte superior
+Filtros "integrados" en la fila 1 para localizar la información. El script anota los elementos más recientes en la parte superior.
 
 # Implementación
 
