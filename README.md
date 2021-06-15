@@ -68,6 +68,8 @@ Filtros "integrados" en la fila 1 para localizar la información. El script anot
 
 ## acercaDe.html
 
+## Activador.gs
+
 ## Código.gs
 
 onOpen()
@@ -85,7 +87,5 @@ etiquetasMensaje()
 duplicarBorradorAPI() y extraerElementos()
 
 actualizarLog()
-
-## Activador.gs
 
 # Licencia
