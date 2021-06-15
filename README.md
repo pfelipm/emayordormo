@@ -2,6 +2,18 @@
 
 **\*\*\* En construcción \*\*\***
 
+*   [¿Qué es eMayordormo?](#qu%C3%A9-es-emayordormo)
+*   [¿Cómo funciona eMayordomo?](#c%C3%B3mo-funciona-emayordomo)
+*   [La hoja de cálculo](la-hoja-de-c%C3%A1lculo)
+    *   [Pestaña 🔀 Reglas](#pesta%C3%B1a--reglas)
+    *   [Pestaña 🗒️ Registro](#pesta%C3%B1a-%EF%B8%8F-registro)
+*   [Implementación](#implementaci%C3%B3n)
+    *   [Estructura del código](#estructura-del-c%C3%B3digo)
+    *   [acercaDe.html](#acercadehtml)
+    *   [Activador.gs](#activadorgs)
+    *   [Código.gs](#c%C3%B3digogs)
+*   \[acercaDe.html(#licencia)
+
 # ¿Qué es eMayordormo?
 
 **eMayordomo** es un script desarrollado con el objetivo de vigilar un buzón de Gmail para **responder automáticamente a ciertos mensajes con respuestas prediseñadas específicas**. Este documento recoge información técnica sobre su funcionamiento, limitaciones y algunos detalles de implementación que tal vez resulten de tu interés.
@@ -31,7 +43,7 @@ En el artículo mencionado anteriormente se facilitan las [especificaciones](htt
 7.  La hoja de cálculo dispone de un menú específico para el script que permite activarlo, es decir, instalar un [activador (trigger) instalable](https://developers.google.com/apps-script/guides/triggers/installable) que se ejecuta cada hora,o ejecutarlo manualmente. No se ha contemplado la posibilidad de que el usuario pueda seleccionar otras periodicidades.
 8.  Cada vez que eMayordomo procesa el buzón de correo registra el resultado de todos los intentos de envío de respuestas en una tabla situada en otra pestaña de la hoja de cálculo. Esta información es procesada por un conjunto de fórmulas para obtener métricas de procesamiento diferenciadas por cada par etiqueta / borrador.
 
-# El diseño de la hoja de cálculo
+# La hoja de cálculo
 
 eMayordomo es un script que reside en una hoja de cálculo de Google. Esta hoja de cálculo, además, sirve a dos propósitos:
 
