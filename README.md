@@ -62,4 +62,28 @@ Filtros "integrados" en la fila 1 para localizar la información. El script anot
 
 # Implementación
 
+## Estructura del código
+
+## acercaDe.html
+
+## Código.gs
+
+onOpen()
+
+construirMenu()
+
+acercaDe()
+
+ejecutarManualmente()
+
+procesarEmails()
+
+etiquetasMensaje()
+
+duplicarBorradorAPI() y extraerElementos()
+
+actualizarLog()
+
+## Activador.gs
+
 # Licencia
