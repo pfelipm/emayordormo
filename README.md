@@ -1,7 +1,5 @@
 ![](https://user-images.githubusercontent.com/12829262/122110050-6132ec00-ce1e-11eb-99f8-e0ce463c6cd6.png)
 
-![](https://user-images.githubusercontent.com/12829262/122248331-4b7a0100-cec8-11eb-960a-b8684166756f.gif)
-
 **\*\*\* En construcción \*\*\***
 
 # Tabla de contenidos
