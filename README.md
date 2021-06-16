@@ -12,7 +12,7 @@
     *   [Pestaña 🔀 Reglas](#pesta%C3%B1a--reglas)
     *   [Pestaña 🗒️ Registro](#pesta%C3%B1a-%EF%B8%8F-registro)
 *   [Implementación](#implementaci%C3%B3n)
-    *   [Estructura del código](#estructura-del-c%C3%B3digo)
+    *   [Diagrama de bloques](#diagrama-de-bloques)
     *   [acercaDe.html](#acercadehtml)
     *   [Activador.gs](#activadorgs)
     *   [Código.gs](#c%C3%B3digogs)
@@ -123,7 +123,7 @@ Además, se han dispuesto tres controles de filtro en la parte superior para fac
 
 # Implementación
 
-## Estructura del código
+## Diagrama de bloques
 
 ## acercaDe.html
 
