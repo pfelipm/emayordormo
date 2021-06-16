@@ -59,7 +59,11 @@ Aunque, evidentemente, las hojas de cálculo no constituyen en general el mejor 
 
 ![](https://user-images.githubusercontent.com/12829262/122110014-537d6680-ce1e-11eb-8320-d4308c526abf.png)
 
+Un ajuste visual que casi siempre realizo en mis hojas de cálculo para mejorar su aspecto es eliminar las líneas de cuadrícula (`Ver →  Eliminar las líneas de cuadrícula`) y activar simultáneamente los colores alternos en las tablas de datos (Formato → Colores alternos), siempre utili
+
 Las columnas A - D son las utilizadas para ajustar la configuración del script. El resto (E - H, con encabezado de azul más claro), contienen una serie de fórmulas matriciales que resumen los datos contenidos en la pestaña de registro (a continuación). Se ha [protegido](https://support.google.com/docs/answer/1218656?co=GENIE.Platform%3DDesktop&hl=es) el intervalo E1:H11 para evitar ediciones accidentales que pudieran romper las fórmulas.
+
+Las casillas de verif
 
 Formato condicional en casilla de verificación
 
