@@ -59,7 +59,11 @@ Aunque, evidentemente, las hojas de cálculo no constituyen en general el mejor 
 
 ![](https://user-images.githubusercontent.com/12829262/122110014-537d6680-ce1e-11eb-8320-d4308c526abf.png)
 
-Un ajuste visual que casi siempre realizo en mis hojas de cálculo para mejorar su aspecto es eliminar las líneas de cuadrícula (`Ver →  Eliminar las líneas de cuadrícula`) y activar simultáneamente los colores alternos en las tablas de datos (Formato → Colores alternos), siempre utili
+Un ajuste visual que casi siempre realizo en mis hojas de cálculo para mejorar su aspecto es eliminar las líneas de cuadrícula (`Ver` ⇒  `Eliminar las líneas de cuadrícula`) y activar simultáneamente los colores alternos en las tablas de datos (`Formato` ⇒ `Colores alternos`), una combinación de colores poco saturados para las filas alternas de la tabla con otro más intenso en el encabezado suele funcionar bien.
+
+![](https://user-images.githubusercontent.com/12829262/122234185-f71d5400-cebc-11eb-84e4-b679a06b4db1.png)
+
+Las casillas de verificación, que permiten desactivar selectivamente algunas reglas, podrían haberse ocultado en aquellas filas vacías fácilmente usando un regla de formato condicional, con las funciones [`ES.PAR()`](https://support.google.com/docs/answer/3093419) y [`ES.IMPAR()`](https://support.google.com/docs/answer/3093491), para hacer coincidir en su caso el color del texto con el de fondo. 
 
 Las columnas A - D son las utilizadas para ajustar la configuración del script. El resto (E - H, con encabezado de azul más claro), contienen una serie de fórmulas matriciales que resumen los datos contenidos en la pestaña de registro (a continuación). Se ha [protegido](https://support.google.com/docs/answer/1218656?co=GENIE.Platform%3DDesktop&hl=es) el intervalo E1:H11 para evitar ediciones accidentales que pudieran romper las fórmulas.
 
