@@ -109,7 +109,17 @@ Y, naturalmente, estos cálculos podrían haberse realizado en el seno del códi
 
 ## Pestaña 🗒️ **Registro**
 
-Filtros "integrados" en la fila 1 para localizar la información. El script anota los elementos más recientes en la parte superior.
+![](https://user-images.githubusercontent.com/12829262/122252608-c7c21380-cecb-11eb-8ad5-ad6434776eb8.png)
+
+En esta pestaña se muestran ciertos eventos de funcionamiento registrados por el script, siempre más arriba que incluyen:
+
+*   Respuestas enviadas correctamente.
+*   Respuestas que no han podido ser enviadas, bien por algún fallo en la configuración de las reglas, bien por errores en tiempo de ejecución de cualquier índole.
+*   Ejecuciones programadas o manuales en las que no se han detectado correos electrónicos a los que responder.
+
+Por comodidad, los elementos más recientes aparecerán siempre en la parte superior de la tabla, en la que se ha usado nuevamente la combinación de colores alternos que se aplicó sobre la de reglas.
+
+Además, se han dispuesto tres controles de filtro en la parte superior para facilitar un primer análisis de los datos, aunque cabe la posibilidad, tal y como [se recomendaba en el artículo previo](https://pablofelip.online/emayordomo/#mcetoc_1f829n2n14f), de llevarlos a una herramienta de visualización más avanzada como Data Studio. Se ha ajustado el color de fondo de los controles de filtro para hacerlo coincidir con el de la fila sobre la que flotan para lograr una mejor integración visual, aunque esto probablemente sea una manía mía.
 
 # Implementación
 
