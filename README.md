@@ -1,5 +1,7 @@
 ![](https://user-images.githubusercontent.com/12829262/122110050-6132ec00-ce1e-11eb-99f8-e0ce463c6cd6.png)
 
+![](https://user-images.githubusercontent.com/12829262/122248331-4b7a0100-cec8-11eb-960a-b8684166756f.gif)
+
 **\*\*\* En construcción \*\*\***
 
 # Tabla de contenidos
@@ -44,7 +46,7 @@ En el artículo mencionado anteriormente se facilitan las [especificaciones](htt
 5.  Para establecer los emparejamientos (etiqueta, borrador) se recurre a una tabla de reglas en una hoja de cálculo de Google, en la que a cada etiqueta se le asocia uno de los prefijos utilizados en los asuntos de los borradores.
 6.  Cada regla cuenta, opcionalmente, con una expresión regular para extraer la dirección de email a la que se debe responder del propio contenido del mensaje.
 7.  La hoja de cálculo dispone de un menú específico para el script que permite activarlo, es decir, instalar un [activador (trigger) instalable](https://developers.google.com/apps-script/guides/triggers/installable) que se ejecuta cada hora,o ejecutarlo manualmente. No se ha contemplado la posibilidad de que el usuario pueda seleccionar otras periodicidades.
-8.  Cada vez que eMayordomo procesa el buzón de correo registra el resultado de todos los intentos de envío de respuestas en una tabla situada en otra pestaña de la hoja de cálculo. Esta información es procesada por un conjunto de fórmulas para obtener métricas de procesamiento diferenciadas por cada par etiqueta / borrador.
+8.  Cada vez que eMayordomo procesa el buzón de correo registra el resultado de todos los intentos de envío de respuestas en una tabla situada en otra pestaña de la hoja de cálculo. Esta información es procesada por un conjunto de fórmulas para obtener métricas de procesamiento para cada par etiqueta / borrador.
 
 # La hoja de cálculo
 
@@ -79,7 +81,7 @@ He aplicado una nueva regla de formato condicional sobre las columnas `B` y `C` 
 
 ![](https://user-images.githubusercontent.com/12829262/122237277-7ca20380-cebf-11eb-906d-fa89ef974735.png)
 
-Se han insertado notas (`Insertar` ⇒ `Nota`) en las celdas `B1`, `C1` y `D1` con instrucciones básicas de uso. Aunque las hojas de cálculo de Google también admiten comentarios, l[as notas resultan más convenientes](https://twitter.com/pfelipm/status/1317511665773051905) cuando no se requiere una discusión activa con otros usuarios con acceso al documento.
+Se han insertado notas (`Insertar` ⇒ `Nota`) en las celdas `B1`, `C1` y `D1` con instrucciones básicas de uso. Aunque las hojas de cálculo de Google también admiten comentarios, l[as notas resultan más convenientes](https://twitter.com/pfelipm/status/1317511665773051905) cuando no se requiere una discusión activa con el resto de usuarios que tuvieran acceso al documento.
 
 ![](https://user-images.githubusercontent.com/12829262/122239697-701eaa80-cec1-11eb-8e1b-1c39f6e6107e.gif)
 
@@ -87,9 +89,21 @@ También he utilizado la validación de datos (`Datos` ⇒ `Validación de datos
 
 ![](https://user-images.githubusercontent.com/12829262/122242130-5da57080-cec3-11eb-8c3e-0a91f396ee7e.png)
 
-Arrayformula en encabezado para contar nº envíos OK y fecha último
+Finalmente, cuatro fórmulas de tipo matricial ([`ARRAYFORMULA`](https://support.google.com/docs/answer/3093275)) realizan recuentos ([`CONTAR.SI.CONJUNTO`](https://support.google.com/docs/answer/3256550)) y búsquedas ([`BUSCARV`](https://support.google.com/docs/answer/3093318)) en la tabla de registro (pestaña 🗒️ **Registro**, a continuación) para calcular, para cada regla, el nº de envíos realizados, los que han experimentado errores y sus marcas de tiempo correspondientes. Veamos, por ejemplo, las correspondientes a los envíos realizados con éxito y a la marca temporal del último envío.
 
-Arrayformula en encabezado para contar nº envíos KO y fecha último
+```
+={"📨 Envíos";ArrayFormula(SI(ESBLANCO(B2:B);"";CONTAR.SI.CONJUNTO('🗒️ Registro'!D2:D;B2:B;'🗒️ Registro'!A2:A;"🆗")))}
+```
+
+```
+={"📨 Último envío";ArrayFormula(SI.ERROR(BUSCARV("🆗" & B2:B;{'🗒️ Registro'!A2:A & '🗒️ Registro'!D2:D\'🗒️ Registro'!C2:C};2;FALSO);))}
+```
+
+![](https://user-images.githubusercontent.com/12829262/122248390-53d23c00-cec8-11eb-94bb-6f0a909291b9.gif)
+
+Estas fórmulas se encuentran en la fila de encabezado y por tanto devuelven en la 1ª fila del resultado la etiqueta informativa como literal de texto . Esto resulta muy práctico, dado que de este modo es posible ordenar la tabla sin que los cálculos dejen de funcionar del modo esperado.
+
+Y, naturalmente, estos cálculos podrían haberse realizado en el seno del código Apps Script, pero dado que en este caso tenemos a nuestra disposición toda la potencia que nos ofrecen las fórmulas de las hojas de cálculo de Google ¿por qué no usarlas? 
 
 ## Pestaña 🗒️ **Registro**
 
