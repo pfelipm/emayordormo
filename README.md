@@ -87,7 +87,7 @@ Se han insertado notas (`Insertar` ⇒ `Nota`) en las celdas `B1`, `C1` y `D1` c
 
 También he utilizado la validación de datos (`Datos` ⇒ `Validación de datos`) para evitar que se configuren dos reglas sobre la misma etiqueta de correo. La fórmula personalizada usada en el criterio de validación es `=CONTAR.SI($B$2:$B;B2)=1`, lo que rechaza cualquier secuencia de texto ya presente en el intervalo `B2:B`.
 
-![](https://user-images.githubusercontent.com/12829262/122242130-5da57080-cec3-11eb-8c3e-0a91f396ee7e.png)
+![](https://user-images.githubusercontent.com/12829262/122250606-15d61780-ceca-11eb-95b1-624782a6b0b3.png)
 
 Finalmente, cuatro fórmulas de tipo matricial ([`ARRAYFORMULA`](https://support.google.com/docs/answer/3093275)) realizan recuentos ([`CONTAR.SI.CONJUNTO`](https://support.google.com/docs/answer/3256550)) y búsquedas ([`BUSCARV`](https://support.google.com/docs/answer/3093318)) en la tabla de registro (pestaña 🗒️ **Registro**, a continuación) para calcular, para cada regla, el nº de envíos realizados, los que han experimentado errores y sus marcas de tiempo correspondientes. Veamos, por ejemplo, las correspondientes a los envíos realizados con éxito y a la marca temporal del último envío.
 
