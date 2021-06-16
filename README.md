@@ -37,7 +37,7 @@ Lógicamente también puedes hacer ambas cosas, lo que por otra parte es lo más
 
 En el artículo mencionado anteriormente se facilitan las [especificaciones](https://pablofelip.online/emayordomo/#mcetoc_1f7masso32l) de eMayordomo para a continuación detallar [cómo se han llegado a satisfacer](https://pablofelip.online/emayordomo/#mcetoc_1f7m9lbio2h). No obstante, repasemos el funcionamiento general del script para centrar la discusión antes de abordar algunos de los aspectos técnicos de su implementación.
 
-![Diagrama de eMayordomo](https://docs.google.com/drawings/d/e/2PACX-1vS6_mjaL-sZabk3piQYjGwOQWytUsRRnmE-Khrijj5hs_A8ivxCeO0tha1YKW4wGKnQXS0BXVTA8PIp/pub?w=1000&h=1000)
+![Esquema funcional](https://docs.google.com/drawings/d/e/2PACX-1vS6_mjaL-sZabk3piQYjGwOQWytUsRRnmE-Khrijj5hs_A8ivxCeO0tha1YKW4wGKnQXS0BXVTA8PIp/pub?w=1000&h=1000)
 
 1.  Un usuario rellena un formulario web de contacto.
 2.  El formulario envía una notificación por correo electrónico a un buzón de Gmail.
@@ -124,6 +124,8 @@ Además, se han dispuesto tres controles de filtro en la parte superior para fac
 # Implementación
 
 ## Diagrama de bloques
+
+![Diagrama de bloques](https://docs.google.com/drawings/d/e/2PACX-1vRGv92McVLaESzpO2jSc8j_gq8VO7u2lPc4A0-DUWIIq8F1hauwxLojvkZSrPG5hNUy-Y0ReclagLAy/pub?w=1000&h=1000)
 
 ## acercaDe.html
 
