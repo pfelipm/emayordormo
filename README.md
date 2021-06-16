@@ -85,7 +85,7 @@ Se han insertado notas (`Insertar` ⇒ `Nota`) en las celdas `B1`, `C1` y `D1` c
 
 ![](https://user-images.githubusercontent.com/12829262/122239697-701eaa80-cec1-11eb-8e1b-1c39f6e6107e.gif)
 
-También he utilizado la validación de datos (`Datos` ⇒ `Validación de datos`) para evitar que se configuren dos reglas sobre la misma etiqueta de correo. La fórmula personalizada usada en el criterio de validación es `=CONTAR.SI($B$2:$B;B2)=1`, lo que rechaza cualquier secuencia de texto ya presente en el intervalo `B2:B`.
+También he utilizado la validación de datos (`Datos` ⇒ `Validación de datos`) para evitar reglas duplicadas sobre la misma etiqueta de correo. La fórmula personalizada usada en el criterio de validación es `=CONTAR.SI($B$2:$B;B2)=1`, lo que rechaza cualquier secuencia de texto ya presente en el intervalo `B2:B`.
 
 ![](https://user-images.githubusercontent.com/12829262/122250606-15d61780-ceca-11eb-95b1-624782a6b0b3.png)
 
