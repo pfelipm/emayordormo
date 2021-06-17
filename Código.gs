@@ -339,7 +339,7 @@ function procesarEmails() {
                         etiqueta: etiqueta,
                         email: destinatario,
                         plantilla: plantilla,
-                        mensaje: `Error intederminado al enviar email`
+                        mensaje: `Error indeterminado al enviar email`
                       });
                   }
                 }
