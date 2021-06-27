@@ -580,7 +580,7 @@ function ejecutarManualmente() {
 
 En caso contrario, se pasa a determinar quién es el propietario de  la hoja de cálculo, del mismo modo que en la función `activar()`.
 
-```
+```javascript
   } else {
     // No hay proceso en 2º plano activo, veamos quién es el propietario de la hdc ¡getOwner() devuelve null si hdc está en unidad compartida!
     let emailPropietario;
@@ -594,7 +594,7 @@ En caso contrario, se pasa a determinar quién es el propietario de  la hoja de
 
 Lo que sigue es muy similar. Si la hoja de cálculo está en una unidad compartida se pide confirmación al usuario.
 
-```
+```javascript
     // [2] Si la hdc está en unidad compartida y el proceso en 2º plano no ha sido activado por el usuario actual solicitar confirmación para proseguir
     if (!emailPropietario && activadoPor != emailUsuarioActivo) {
       ejecutar = ssUi.alert(
@@ -608,7 +608,7 @@ Lo que sigue es muy similar. Si la hoja de cálculo está en una unidad comparti
 
 Si no lo está, se verifica si el usuario activo no es el propietario de la hoja de cálculo, en ese caso se cancela también la ejecución manual.
 
-```
+```javascript
    } else if (emailPropietario && emailPropietario != emailUsuarioActivo) {
      // [3] Cancelar ejecución si se puede determinar que el usuario actual no es el propietario de la hdc
      ssUi.alert(
@@ -621,7 +621,7 @@ Si no lo está, se verifica si el usuario activo no es el propietario de la hoja
 
 Por último se llama, en su caso, a la función `procesarEmails()`.
 
-```
+```javascript
     // Seguir con ejecución manual a menos que se haya cancelado en [2] o [3]
     if (ejecutar) {
       // Ejecutar proceso sobre el buzón de Gmail
@@ -646,9 +646,9 @@ Por último se llama, en su caso, a la función `procesarEmails()`.
 
 ### etiquetasMensaje()
 
-Es una sencilla función auxiliar que devuelve `TRUE` si el mensaje que se pasa como parámetro está marcado con la etiqueta facilitada.
+Es una sencilla función auxiliar que devuelve `TRUE` si el mensaje que se pasa como parámetro está marcado con la etiqueta de Gmail facilitada.
 
-```
+```javascript
 /**
  * Devuelve TRUE si el mensaje está etiquetado con la etiqueta
  * que se pasa como parámetro
