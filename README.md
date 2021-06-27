@@ -14,7 +14,6 @@
     *   [acercaDe.html](#acercadehtml)
     *   [Activador.gs](#activadorgs)
     *   [Código.gs](#c%C3%B3digogs)
-    *   [acercaDe.html](#licencia)
 *   [Licencia](#licencia)
 
 # ¿Qué es eMayordormo?
@@ -507,17 +506,44 @@ Esta es la función que se ejecuta cada vez que se abre la hoja de cálculo. Se 
  * Construye el menú de la aplicación al abrir la hdc de acuerdo con el estado de activación
  */
 function onOpen() {
-  
+
   construirMenu(PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado));
- 
+
 }
 ```
 
-Como probablemente sepas, [onOpen()](https://developers.google.com/apps-script/guides/triggers?hl=en#onopene) es un [activador simple](https://developers.google.com/apps-script/guides/triggers?hl=en#onopene). Hay que tener cuidado con el código que se mete en ellos dado que hay ciertas cosas que no pueden hacer, más concretamente no pueden utilizar servicios que requieran de autorización (más sobre esto en el apartado 2.1 de este [artículo](https://comunidad.gedu.es/post/bas-002-exportar-diapositivas-de-una-presentacion-como-png-6072aa8f5c5c167af76f8508)). Afortunadamente, leer las propiedades del documento usando `PropertiesService` no es una de ellas.
+Como probablemente sepas, [onOpen()](https://developers.google.com/apps-script/guides/triggers?hl=en#onopene) es un [activador simple](https://developers.google.com/apps-script/guides/triggers?hl=en#onopene). Hay que tener cuidado con el código que se mete en ellos dado que hay ciertas cosas de las que nos son capaces . Concretamente, no pueden utilizar servicios que requieran de autorización (más sobre esto en el apartado 2.1 de este [artículo](https://comunidad.gedu.es/post/bas-002-exportar-diapositivas-de-una-presentacion-como-png-6072aa8f5c5c167af76f8508)). Afortunadamente, leer las propiedades del documento usando `PropertiesService` no es una de ellas en este caso (:warning: cuidado , otro gallo cantaría si se tratara de un complemento para hojas de cálculo, donde existen ciertas [circunstancias](https://developers.google.com/workspace/add-ons/concepts/editor-auth-lifecycle?hl=en#authorization_modes) que complican un poco las cosas).
 
 ### construirMenu()
 
+Otra función sencillita.
+
+El primer comando del menú del script será uno u otro dependiendo del estado de activación de eMayordomo, es decir, de si está vigilando o no el buzón de Gmail por medio del consabido activador por tiempo.
+
+```javascript
+function construirMenu(activadoPor) {
+
+  // Construye menú en función del estado del trigger
+  const menu = SpreadsheetApp.getUi().createMenu(`${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`);  
+  if (!activadoPor) {
+    menu.addItem('️⏰ Procesar etiquetas cada hora', 'activar');
+  } else {
+    menu.addItem('⏸️ Dejar de procesar etiquetas cada hora', 'desactivar');
+  }
+
+  // Resto del menú (no dinámico)  
+  menu.addItem('🔁 Ejecutar manualmente', 'ejecutarManualmente')
+  menu.addItem('❓ Comprobar estado', 'comprobarEstado')
+    .addSeparator()
+    .addItem(`💡 Acerca de ${EMAYORDOMO.nombre}`, 'acercaDe')
+    .addToUi();
+
+}
+```
+
 ### acercaDe()
+
+Esta función es invocada por el comando `💡 Acerca de eMayordomo` y se utiliza para abrir la ventana de información de eMayordomo, parametrizando su contenido con sendos _scriptlets._ Esto ya lo comentamos en el apartado dedicado a [acercaDe.html](#acercadehtml), así que nada más que decir aquí.
 
 ### ejecutarManualmente()
 
