@@ -130,6 +130,13 @@ Además, se han dispuesto tres controles de filtro en la parte superior para fac
 Se trata de una plantilla HTML necesaria para generar la ventana que muestra información sobre eMayordomo. Se utiliza el servicio de plantillas HTML ([HTMLService](https://developers.google.com/apps-script/guides/html)) y sendos scriptlets explícitos ([printing scriptlets](https://developers.google.com/apps-script/guides/html/templates#printing_scriptlets)) para parametrizar las cadenas de texto que contienen el nombre y la versión del script.
 
 ```javascript
+const EMAYORDOMO = {
+  version: 'Versión: 1.0 (junio 2021)',
+  icono: '📭',
+  nombre: 'eMayordomo',
+  ...
+};
+
 function acercaDe() {
   let panel = HtmlService.createTemplateFromFile('acercaDe');
   panel.version = EMAYORDOMO.version;
