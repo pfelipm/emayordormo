@@ -173,7 +173,7 @@ Cuando un script que instala _triggers_ puede ser utilizado por varios usuarios 
 *   [PropertiesService](https://developers.google.com/apps-script/guides/properties), para llevar la cuenta de la dirección de email del usuario que ha realizado la activación del _trigger_. Un valor de `null` o `''` indica que no está activo. El uso de este registro es imprescidible dado que un usuario [no puede determinar](https://developers.google.com/apps-script/reference/script/script-app#getProjectTriggers()) qué _triggers han_ sido activados por otros, ni siquiera en el contexto de un mismo script.
 *   [LockService](https://developers.google.com/apps-script/reference/lock), para garantizar que no se produzcan problemas de concurrencia al modificar la propiedad que identifica al usuario que ha instalado el activador.
 
-![https://youtu.be/O4HvbyFLeHw](https://img.youtube.com/vi/O4HvbyFLeHw/0.jpg)
+![Vídeo uso Properties/LockService](https://user-images.githubusercontent.com/12829262/123540140-bd124480-d73d-11eb-9d31-f34453debbee.png)
 
 Adicionalmente, y dado que eMayordomo require que se **hayan definido una serie de reglas de filtro sobre el buzón de Gmail que se desea vigilar**, se establece una verificación adicional para impedir que un usuario distinto al propietario de la hoja de cálculo de control instale el activador. Se supone, por tanto, que **el propietario de ambos elementos (buzón y hoja de cálculo) es el mismo**. Esta comprobación, no obstante, no puede realizarse cuando la hoja de cálculo reside en una unidad compartida. En esa circunstancia eMayordomo informará al usuario y solicitará su confirmación antes de poner en marcha el activador por tiempo.
 
