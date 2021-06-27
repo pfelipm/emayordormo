@@ -548,6 +548,10 @@ Esta función es invocada por el comando `💡 Acerca de eMayordomo` y se util
 
 eMayordomo también admite la ejecución manual del proceso de atención a los mensajes recibidos en el buzón de Gmail. Esto puede resultar de utilidad para procesar correos electrónicos a los que no se ha respondido como consecuencia de algún error temporal.
 
+Esta función puede invocarse el comando `🔁 Ejecutar manualmente`.
+
+![](https://user-images.githubusercontent.com/12829262/123556666-c1b21980-d78c-11eb-9a60-05900701e74f.png)
+
 Si un usuario distinto al que ejecuta la función ya ha activado el funcionamiento en 2º plano de eMayordomo la ejecución manual queda cancelada. Lógico, el buzón de Gmail no será en ese caso el del usuario actual.
 
 ```javascript
