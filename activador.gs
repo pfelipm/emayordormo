@@ -106,7 +106,7 @@ function activar() {
           ssUi.ButtonSet.OK);
         
       } catch(e) {
-        // No ha sido posible obtener acceso al bloque de códido mutex
+        // No ha sido posible obtener acceso al bloque de código exclusivo
         ssUi.alert(
           `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
           `${EMAYORDOMO.simboloError} En este momento no es posible activar el proceso en 2º plano, inténtalo más tarde.`,
@@ -171,14 +171,12 @@ function desactivar() {
         mensaje,
         ssUi.ButtonSet.OK);
     }        
-  } catch (e) {
-    // No ha sido posible obtener acceso al bloque de códido mutex
-
+  } catch (e) { 
+    // No ha sido posible obtener acceso al bloque de código exclusivo
     ssUi.alert(
       `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
       `${EMAYORDOMO.simboloError} En este momento no es posible desactivar el proceso en 2º plano, inténtalo más tarde.`,
       ssUi.ButtonSet.OK);
-
   }
   
   // Se ejecuta siempre para sincronizar estado del menú cuanto antes cuando hay varias instancias abiertas de la hdc
@@ -202,7 +200,7 @@ function gestionarTrigger(orden) {
       try {
         ScriptApp.newTrigger('procesarEmails')
         .timeBased()
-        .everyHours(1)
+        .everyHours(EMAYORDOMO.horasActivador)
         .create();
         console.info('Creado');
       } catch(e) {
