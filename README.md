@@ -201,12 +201,34 @@ Simplemente muestra un mensaje indicando si eMayordomo está procesando respuest
 
 ![](https://user-images.githubusercontent.com/12829262/123541617-bb4c7f00-d745-11eb-8458-f31f2c3bfcf5.png)
 
-La función siempre actualiza el menú del script antes de finalizar su ejecución para que este refleje su estado de activación tan pronto como sea posible en un escenario multi usuario.
-
 ```javascript
- // Se ejecuta siempre para sincronizar estado del menú cuanto antes cuando hay varias instancias abiertas de la hdc
- construirMenu(PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado));  
+/**
+ * Informa del estado de activación de eMayordomo
+ * ¿Se está vigilando el buzón de Gmail en 2º plano?
+ */
+function comprobarEstado() {
+  
+  const ssUi = SpreadsheetApp.getUi();
+  const activadoPor = PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado);
+  if (activadoPor == '') {
+    mensaje = `No se está vigilando el buzón de Gmail en 2º plano.`;
+  } else {
+    mensaje = `El proceso en 2º plano ha sido activado por ${activadoPor}
+    y se está vigilando su buzón de Gmail.`;
+  }
+  ssUi.alert(
+    `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+    mensaje,
+    ssUi.ButtonSet.OK);
+
+
+  // Se ejecuta siempre para sincronizar estado del menú cuanto antes cuando hay varias instancias abiertas de la hdc
+  construirMenu(PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado));   
+
+}
 ```
+
+La función siempre actualiza el menú del script antes de finalizar su ejecución para que este refleje su estado de activación tan pronto como sea posible en un escenario multi usuario.
 
 ### activar()
 
@@ -219,6 +241,14 @@ Tiene en cuenta las circunstancias descritas anteriormente, que puden combinarse
 Primeramente se comprueba si ya hay un _trigger_ activo.
 
 ```javascript
+/**
+* Menú >> Activar
+* Trata de impedir que un usuario distinto al propietario de la hdc active el trigger,
+* esto es una medida de seguridad para evitar que eMayordomo actúe sobre el buzón de
+* Gmail incorrecto. La comprobación no es concluyente cuando la hdc reside en una
+* unidad compartida, en ese caso se solicita confirmación al usuario.
+*/
+function activar() {
   const ssUi = SpreadsheetApp.getUi();
   let emailPropietario;
   let activar = true;
@@ -319,6 +349,8 @@ Y, antes de terminar, se actualiza el menú para reflejar el cambio en el primer
 ```javascript
   // Se ejecuta siempre para sincronizar estado del menú cuanto antes cuando hay varias instancias abiertas de la hdc
   construirMenu(PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado));
+  
+}
 ```
 
 ![](https://user-images.githubusercontent.com/12829262/123549669-3889eb00-d76a-11eb-8e82-578ec15df79c.png)
