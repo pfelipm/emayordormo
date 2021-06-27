@@ -410,14 +410,13 @@ function desactivar() {
         ssUi.ButtonSet.OK);
 ```
 
-En caso contrario, simplemente se emite una alerta informativa.
+En caso contrario, simplemente se muestra una alerta informativa.
 
 ```javascript
     } else {
         
       // Aquí termina la sección crítica cuando *no* se realiza desactivación porque lo ha activado otro usuario o no está activado
       mutex.releaseLock();
-
 
       if (activadoPor == '') {
         mensaje = `${EMAYORDOMO.simboloError} El proceso en 2º plano no está activado.`;
@@ -659,7 +658,7 @@ function etiquetasMensaje(msg, etiqueta) {
   const idEtiqueta = Gmail.Users.Labels.list('me').labels.find(e => e.name == etiqueta).id;
   etiquetas = Gmail.Users.Messages.get('me', id).labelIds;
   console.info(etiquetas)
-  
+
   if (etiquetas.map) {
     return etiquetas.includes(idEtiqueta);
   }
