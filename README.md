@@ -127,7 +127,9 @@ Además, se han dispuesto tres controles de filtro en la parte superior para fac
 
 ## acercaDe.html
 
-Se trata de una plantilla HTML necesaria para generar la ventana que muestra información sobre eMayordomo. Se utiliza el servicio de plantillas HTML ([HTMLService](https://developers.google.com/apps-script/guides/html)) y sendos scriptlets explícitos ([printing scriptlets](https://developers.google.com/apps-script/guides/html/templates#printing_scriptlets)) para parametrizar las cadenas de texto que contienen el nombre y la versión del script.
+Se trata de una plantilla HTML necesaria para generar la ventana que muestra información sobre eMayordomo.
+
+Se utiliza el servicio de plantillas HTML ([HTMLService](https://developers.google.com/apps-script/guides/html)) y sendos _scriptlets_ explícitos ([printing scriptlets](https://developers.google.com/apps-script/guides/html/templates#printing_scriptlets)) para parametrizar los elementos de texto que indican el nombre y la versión del script.
 
 ![](https://user-images.githubusercontent.com/12829262/123538857-0b701500-d737-11eb-853f-ad97d5d8b7ce.png)
 
@@ -164,13 +166,15 @@ La pequeña imagen en la cabecera del cuadro de diálogo se ha insertado usando 
 
 ## Activador.gs
 
-El modo de funcionamiento natural de eMayordomo es en 2º plano, gracias a un activador instalable por tiempo  ([time-driven trigger](https://developers.google.com/apps-script/guides/triggers/installable)), instanciado mediante la clase [ClockTriggerBuilder](https://developers.google.com/apps-script/reference/script/clock-trigger-builder),  que es inicializado por el usuario mediante el comando del menú del script `⏰ Procesar etiquetas cada hora` y se ejecuta cada hora de manera predeterminada.
+El modo de funcionamiento natural de eMayordomo es en 2º plano, gracias a un activador por tiempo instalable ([time-driven installable trigger](https://developers.google.com/apps-script/guides/triggers/installable)), instanciado mediante la clase [ClockTriggerBuilder](https://developers.google.com/apps-script/reference/script/clock-trigger-builder),  que es inicializado por el usuario mediante el comando del menú del script `⏰ Procesar etiquetas cada hora`.
 
-La interfaz de usuario de eMayordormo no contempla en estos momentos la posibilidad de que el usuario pueda introducir una frecuencia distinta, pero este valor puede ser ajustado fácilmente modificando la constante `EMAYORDOMO.horasActivador` en la sección de inicialización de variables globales en `Código.gs`.
+![](https://user-images.githubusercontent.com/12829262/123541712-2b5b0500-d746-11eb-91f9-f7a00851e22c.png)
+
+La interfaz de usuario de eMayordormo no contempla en estos momentos la posibilidad de que el usuario pueda introducir una frecuencia distinta a 1 hora para las ejecuciones periódicas del activador por tiempo, pero este valor puede ser variado fácilmente modificando la constante `EMAYORDOMO.horasActivador` en la sección de inicialización de variables globales en `Código.gs`.
 
 :warning:  Cuando un script que instala _triggers_ puede ser utilizado por varios usuarios es conveniente **impedir que se activen múltiples instancias**. De lo contrario nos podemos encontrar con la situación de que el script reacciona por duplicado ante un determinado evento, lo que probablemente puede suponer un mal funcionamiento o, como mínimo, un pérdida de eficiencia. Esto se consigue utilizando:
 
-*   [PropertiesService](https://developers.google.com/apps-script/guides/properties), para llevar la cuenta de la dirección de email del usuario que ha realizado la activación del _trigger_. Un valor de `null` o `''` indica que no está activo. El uso de este registro es imprescidible dado que un usuario [no puede determinar](https://developers.google.com/apps-script/reference/script/script-app#getProjectTriggers()) qué _triggers han_ sido activados por otros, ni siquiera en el contexto de un mismo script.
+*   [PropertiesService](https://developers.google.com/apps-script/guides/properties), para llevar la cuenta de la dirección de email del usuario que ha realizado la activación del _trigger_. Un valor de `null` o `''` indica que no está activo. El uso de este registro es imprescidible dado que un usuario [no puede determinar](https://developers.google.com/apps-script/reference/script/script-app#getProjectTriggers()) qué _triggers han_ sido activados por otros, ni siquiera en el contexto de un mismo script. La información se guarda en el registro de **propiedades del documento**, de modo que quede compartida entre todos sus usuarios.
 *   [LockService](https://developers.google.com/apps-script/reference/lock), para garantizar que no se produzcan problemas de concurrencia al modificar la propiedad que identifica al usuario que ha instalado el activador.
 
 ![](https://user-images.githubusercontent.com/12829262/123540516-ae2c9180-d73f-11eb-9b0f-e63a616eed08.png)
@@ -185,7 +189,73 @@ Veamos las distintas funciones involucradas en esta gestión de los activadores.
 
 ### comprobarEstado()
 
+Esta función es invocada por el comando `❓ Comprobar estado` del menú del script.
+
+![](https://user-images.githubusercontent.com/12829262/123541754-7248fa80-d746-11eb-9928-60ea2001c4ae.png)
+
+Simplemente muestra un mensaje indicando si eMayordomo está procesando respuestas en 2º plano o no y, en su caso, qué usuario lo ha activado.
+
+![](https://user-images.githubusercontent.com/12829262/123541617-bb4c7f00-d745-11eb-8458-f31f2c3bfcf5.png)
+
+La función siempre actualiza el menú del script antes de finalizar su ejecución para que este refleje su estado de activación tan pronto como sea posible en un escenario multi usuario.
+
+```javascript
+ // Se ejecuta siempre para sincronizar estado del menú cuanto antes cuando hay varias instancias abiertas de la hdc
+ construirMenu(PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado));  
+```
+
 ### activar()
+
+Esta función es invocada por el comando `⏰ Procesar etiquetas cada hora` del menú del script.
+
+![](https://user-images.githubusercontent.com/12829262/123542152-3f076b00-d748-11eb-8762-eda619d51fb4.png)
+
+Tiene en cuenta las circunstancias descritas anteriormente, que puden combinarse entre sí de distintos modos, para evitar tanto activaciones múltiples como que un usuario distinto al propietario de la hoja de cálculo realice la instalación del _trigger_ (cuando sea posible comprobarlo).
+
+ const activadoPor = PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado);
+
+```javascript
+  const activadoPor = PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado);
+  // [1] Cancelar si ya está activado
+  if (activadoPor) {
+    ssUi.alert(
+    `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+    `${EMAYORDOMO.simboloError} Ya hay un proceso en 2º plano activado por ${activadoPor}.`,
+    ssUi.ButtonSet.OK);
+  } else {
+    // No hay proceso en 2º plano activo, veamos quién es el propietario de la hdc
+    const propietario = SpreadsheetApp.getActiveSpreadsheet().getOwner();
+    const emailUsuarioActivo = Session.getEffectiveUser().getEmail();
+    if (propietario) {
+      emailPropietario = propietario.getEmail();
+    } else {
+      emailPropietario = null;
+    }
+```
+
+```javascript
+	const mutex = LockService.getDocumentLock();
+      try {
+
+        // Queremos fallar cuanto antes
+        mutex.waitLock(1);
+        
+        const resultado = gestionarTrigger('ON');
+        let mensaje;    
+        if (resultado == 'OK') {
+          mensaje = `Vigilando ahora el buzón de Gmail de ${emailUsuarioActivo}.`;
+          PropertiesService.getDocumentProperties().setProperty(EMAYORDOMO.propActivado, emailUsuarioActivo);
+        } else {
+          mensaje = `${EMAYORDOMO.simboloError} Se ha producido un error en la activación del proceso en 2º plano: 
+          
+          ${resultado}`;
+        }
+        
+        // Aquí termina la sección crítica cuando se intenta realizar activación
+        mutex.releaseLock();
+```
+
+En su caso, invoca `gestionarTrigger('ON')` para instalarlo, guardando en la propiedad del documento `EMAYORDOMO.propActivado` la dirección de email del usuario que ha ejecutado esta función.
 
 ### desactivar()
 
