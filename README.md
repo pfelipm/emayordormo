@@ -240,7 +240,7 @@ Primeramente se comprueba si ya hay un _trigger_ activo.
     }
 ```
 
- A continuación, se verifica si la hoja de cálculo está alojada en una unidad compartida.
+ A continuación, se verifica si la hoja de cálculo está alojada en una unidad compartida y, de ser así, se solicita confirmación para seguir adelante.
 
 ```javascript
     // [2] Si la hdc está en unidad compartida solicitar confirmación para proseguir o cancelar activación
@@ -268,7 +268,9 @@ Primeramente se comprueba si ya hay un _trigger_ activo.
     }
 ```
 
-Finalmente, se procede en su caso a poner en marcha el activador por tiempo, obteniendo previamente un acceso exclusivo a la sección de código crítica por medio de `getDocumentLock()`. Se invoca `gestionarTrigger('ON')` para instalarlo, guardando en la propiedad del documento indicada por la constante de texto `EMAYORDOMO.propActivado` la dirección de email del usuario que ha conseguido ejecutar este procedimiento con éxito.
+Finalmente, se procede en su caso a poner en marcha el activador por tiempo, obteniendo previamente un acceso exclusivo a la sección de código crítica por medio de `getDocumentLock()` y `waitLock(1)`, que fallará inmediatamente con una excepción, capturada en el bloque `catch(e)` del `try()`, en el caso de que otra instancia del script esté tratando de realizar también la activación al mismo tiempo.
+
+Si todo va bien, este bloque de código invocará a continuación `gestionarTrigger('ON')` para instalar el activador, guardando en la propiedad del documento indicada por la constante de texto `EMAYORDOMO.propActivado` la dirección de email del usuario que haya conseguido ejecutar este procedimiento con éxito.
 
 ```javascript
     // [4] Continuamos con activación a menos que se haya cancelado en [2] o [3]
@@ -280,7 +282,7 @@ Finalmente, se procede en su caso a poner en marcha el activador por tiempo, obt
 
         // Queremos fallar cuanto antes
         mutex.waitLock(1);
-        
+
         const resultado = gestionarTrigger('ON');
         let mensaje;    
         if (resultado == 'OK') {
@@ -288,18 +290,18 @@ Finalmente, se procede en su caso a poner en marcha el activador por tiempo, obt
           PropertiesService.getDocumentProperties().setProperty(EMAYORDOMO.propActivado, emailUsuarioActivo);
         } else {
           mensaje = `${EMAYORDOMO.simboloError} Se ha producido un error en la activación del proceso en 2º plano: 
-          
+
           ${resultado}`;
         }
-        
+
         // Aquí termina la sección crítica cuando se intenta realizar activación
         mutex.releaseLock();
-        
+
         ssUi.alert(
           `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
           mensaje,
           ssUi.ButtonSet.OK);
-        
+
       } catch(e) {
         // No ha sido posible obtener acceso al bloque de códido mutex
         ssUi.alert(
@@ -319,6 +321,8 @@ Y, antes de terminar, se actualiza el menú para reflejar el cambio en el primer
 ```
 
 ![](https://user-images.githubusercontent.com/12829262/123549669-3889eb00-d76a-11eb-8e82-578ec15df79c.png)
+
+La función emite a lo largo de su ejecución diversas alertas visibles con el método [`alert(title, prompt, buttons)`](https://developers.google.com/apps-script/reference/base/ui.html?hl=en#alert(String,String,ButtonSet)) para mostrar lo que está ocurriendo.
 
 ### desactivar()
 
