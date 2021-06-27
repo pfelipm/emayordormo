@@ -223,7 +223,7 @@ Primeramente se comprueba si ya hay un _trigger_ activo.
   let emailPropietario;
   let activar = true;
   const activadoPor = PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado);
-  
+
   // [1] Cancelar si ya está activado
   if (activadoPor) {
     ssUi.alert(
@@ -316,7 +316,7 @@ Si todo va bien, este bloque de código invocará a continuación `gestionarTrig
 
 Y, antes de terminar, se actualiza el menú para reflejar el cambio en el primer comando, que ahora se transformará en `⏸️ Dejar de procesar etiquetas cada hora`.
 
-```
+```javascript
   // Se ejecuta siempre para sincronizar estado del menú cuanto antes cuando hay varias instancias abiertas de la hdc
   construirMenu(PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado));
 ```
