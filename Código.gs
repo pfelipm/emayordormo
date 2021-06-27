@@ -12,7 +12,7 @@
 
 const EMAYORDOMO = {
   version: 'Versión: 1.0 (junio 2021)',
-  icono: '🥸',
+  icono: '📭',
   nombre: 'eMayordomo',
   tablaReglas: {
     nombre: '🔀 Reglas',
