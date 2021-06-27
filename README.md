@@ -174,20 +174,14 @@ La interfaz de usuario de eMayordormo no contempla en estos momentos la posibili
 
 :warning:  Cuando un script que instala _triggers_ puede ser utilizado por varios usuarios es conveniente **impedir que se activen múltiples instancias**. De lo contrario nos podemos encontrar con la situación de que el script reacciona por duplicado ante un determinado evento, lo que probablemente puede suponer un mal funcionamiento o, como mínimo, un pérdida de eficiencia. Esto se consigue utilizando:
 
-*   [PropertiesService](https://developers.google.com/apps-script/guides/properties), para llevar la cuenta de la dirección de email del usuario que ha realizado la activación del _trigger_. Un valor de `null` o `''` indica que no está activo. El uso de este registro es imprescidible dado que un usuario [no puede determinar](https://developers.google.com/apps-script/reference/script/script-app#getProjectTriggers()) qué _triggers han_ sido activados por otros, ni siquiera en el contexto de un mismo script. La información se guarda en el registro de **propiedades del documento**, de modo que quede compartida entre todos sus usuarios.
+*   [PropertiesService](https://developers.google.com/apps-script/guides/properties), para llevar la cuenta de la dirección de email del usuario que ha realizado la activación del _trigger_. Un valor de `null` o `''` indica que no está activo. El uso de este registro es imprescindible dado que un usuario [no puede determinar](https://developers.google.com/apps-script/reference/script/script-app#getProjectTriggers()) qué _triggers han_ sido activados por otros, ni siquiera en el contexto de un mismo script. La información se guarda en el registro de **propiedades del documento**, de modo que quede compartida entre todos sus usuarios.
 *   [LockService](https://developers.google.com/apps-script/reference/lock), para garantizar que no se produzcan problemas de concurrencia al modificar la propiedad que identifica al usuario que ha instalado el activador. Dado que este script no se distribuye como complemento, [`getDocumentLock()`](https://developers.google.com/apps-script/reference/lock/lock-service?hl=en#getdocumentlock) y [`getScriptLock()`](https://developers.google.com/apps-script/reference/lock/lock-service?hl=en#getscriptlock). podrían utilizarse indistintamente, obteniendo en ambos casos los mismos resultados.
 
 ![](https://user-images.githubusercontent.com/12829262/123540516-ae2c9180-d73f-11eb-9b0f-e63a616eed08.png)
 
 :point\_right: [Ver vídeo demostrativo en YouTube](https://youtu.be/O4HvbyFLeHw)
 
-Adicionalmente, y dado que eMayordomo require que se hayan definido una serie de reglas de filtro sobre el buzón de Gmail que se desea vigilar, se establece una **verificación adicional para impedir que un usuario distinto al propietario de la hoja de cálculo de control instale el activador**. Se supone, por tanto, que **el propietario de ambos elementos (buzón y hoja de cálculo) es el mismo**.
-
-Esta comprobación, no obstante, [no puede realizarse](https://twitter.com/pfelipm/status/1404186554378108931) cuando la hoja de cálculo reside en una unidad compartida. En esta circunstancia, eMayordomo informará al usuario y solicitará su confirmación antes de poner en marcha el activador por tiempo.
-
-![Imagen](https://pbs.twimg.com/media/E3yppjMWQAEzcgZ?format=png&name=900x900)
-
-eMayordomo mostrará mensajes de alerta para mantener al usuario informado de cualquier de las circunstancias descritas.
+Adicionalmente, y dado que eMayordomo requiere que se hayan definido una serie de reglas de filtro sobre el buzón de Gmail que se desea vigilar, se establece una **verificación adicional para impedir que un usuario distinto al propietario de la hoja de cálculo de control instale el activador**. Se supone, por tanto, que **el propietario de ambos elementos (buzón y hoja de cálculo) es el mismo**.
 
 Veamos las distintas funciones involucradas en esta gestión de los activadores.
 
@@ -206,24 +200,23 @@ Simplemente muestra un mensaje indicando si eMayordomo está procesando respuest
  * Informa del estado de activación de eMayordomo
  * ¿Se está vigilando el buzón de Gmail en 2º plano?
  */
-function comprobarEstado() {
-  
-  const ssUi = SpreadsheetApp.getUi();
-  const activadoPor = PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado);
-  if (activadoPor == '') {
-    mensaje = `No se está vigilando el buzón de Gmail en 2º plano.`;
-  } else {
-    mensaje = `El proceso en 2º plano ha sido activado por ${activadoPor}
-    y se está vigilando su buzón de Gmail.`;
-  }
-  ssUi.alert(
-    `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
-    mensaje,
-    ssUi.ButtonSet.OK);
+ function comprobarEstado() {
 
-
-  // Se ejecuta siempre para sincronizar estado del menú cuanto antes cuando hay varias instancias abiertas de la hdc
-  construirMenu(PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado));   
+   const ssUi = SpreadsheetApp.getUi();
+   const activadoPor = PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado);
+   if (activadoPor == '') {
+     mensaje = `No se está vigilando el buzón de Gmail en 2º plano.`;
+   } else {
+     mensaje = `El proceso en 2º plano ha sido activado por ${activadoPor}
+     y se está vigilando su buzón de Gmail.`;
+   }
+   ssUi.alert(
+     `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+     mensaje,
+     ssUi.ButtonSet.OK);
+     
+   // Se ejecuta siempre para sincronizar estado del menú cuanto antes cuando hay varias instancias abiertas de la hdc
+   construirMenu(PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado));   
 
 }
 ```
@@ -232,23 +225,24 @@ La función siempre actualiza el menú del script antes de finalizar su ejecuci�
 
 ### activar()
 
-Esta función es invocada por el comando `⏰ Procesar etiquetas cada hora` del menú del script.
+Esta función es invocada al utilizar el comando `⏰ Procesar etiquetas cada hora` del menú del script.
 
 ![](https://user-images.githubusercontent.com/12829262/123542152-3f076b00-d748-11eb-8762-eda619d51fb4.png)
 
-Tiene en cuenta las circunstancias descritas anteriormente, que puden combinarse entre sí de distintos modos, para evitar tanto activaciones múltiples como que un usuario distinto al propietario de la hoja de cálculo realice la instalación del _trigger_ (cuando sea posible comprobarlo).
+La lógica del control tiene en cuenta las circunstancias ya descritas, que pueden combinarse entre sí de distintos modos, para evitar tanto activaciones múltiples como que un usuario distinto al propietario de la hoja de cálculo realice la instalación del _trigger_ (cuando sea posible comprobarlo, claro está).
 
-Primeramente se comprueba si ya hay un _trigger_ activo.
+Primeramente se comprueba si ya hay un _trigger_ activo. De ser así se cancela la activación.
 
 ```javascript
 /**
-* Menú >> Activar
-* Trata de impedir que un usuario distinto al propietario de la hdc active el trigger,
-* esto es una medida de seguridad para evitar que eMayordomo actúe sobre el buzón de
-* Gmail incorrecto. La comprobación no es concluyente cuando la hdc reside en una
-* unidad compartida, en ese caso se solicita confirmación al usuario.
-*/
+ * Menú >> Activar
+ * Trata de impedir que un usuario distinto al propietario de la hdc active el trigger,
+ * esto es una medida de seguridad para evitar que eMayordomo actúe sobre el buzón de
+ * Gmail incorrecto. La comprobación no es concluyente cuando la hdc reside en una
+ * unidad compartida, en ese caso se solicita confirmación al usuario.
+ */
 function activar() {
+ 
   const ssUi = SpreadsheetApp.getUi();
   let emailPropietario;
   let activar = true;
@@ -256,22 +250,29 @@ function activar() {
 
   // [1] Cancelar si ya está activado
   if (activadoPor) {
-    ssUi.alert(
-    `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
-    `${EMAYORDOMO.simboloError} Ya hay un proceso en 2º plano activado por ${activadoPor}.`,
-    ssUi.ButtonSet.OK);
-  } else {
-    // No hay proceso en 2º plano activo, veamos quién es el propietario de la hdc
-    const propietario = SpreadsheetApp.getActiveSpreadsheet().getOwner();
-    const emailUsuarioActivo = Session.getEffectiveUser().getEmail();
-    if (propietario) {
-      emailPropietario = propietario.getEmail();
-    } else {
-      emailPropietario = null;
-    }
+    ssUi.alert(
+    `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+    `${EMAYORDOMO.simboloError} Ya hay un proceso en 2º plano activado por ${activadoPor}.`,
+    ssUi.ButtonSet.OK);
 ```
 
- A continuación, se verifica si la hoja de cálculo está alojada en una unidad compartida y, de ser así, se solicita confirmación para seguir adelante.
+ A continuación se trata de identificar al propietario de la hoja de cálculo.
+
+```javascript
+  } else {
+    // No hay proceso en 2º plano activo, veamos quién es el propietario de la hdc
+    const propietario = SpreadsheetApp.getActiveSpreadsheet().getOwner();
+    const emailUsuarioActivo = Session.getEffectiveUser().getEmail();
+    if (propietario) {
+      emailPropietario = propietario.getEmail();
+    } else {
+      emailPropietario = null;
+    }
+```
+
+Esta comprobación, no obstante, :warning: [no puede realizarse](https://twitter.com/pfelipm/status/1404186554378108931) :warning: **cuando la hoja de cálculo reside en una unidad compartida**. En esta circunstancia, eMayordomo informará al usuario y solicitará su confirmación antes de poner en marcha el activador por tiempo.
+
+![Imagen](https://pbs.twimg.com/media/E3yppjMWQAEzcgZ?format=png&name=900x900)
 
 ```javascript
     // [2] Si la hdc está en unidad compartida solicitar confirmación para proseguir o cancelar activación
@@ -289,6 +290,11 @@ function activar() {
           `Activación en 2º plano cancelada.`,
           ssUi.ButtonSet.OK);
       }
+```
+
+Si el usuario actual del script no es quien realizó la activación, el proceso finaliza con un mensaje de alerta.
+
+```javascript
     } else if (emailPropietario != emailUsuarioActivo) {
       // [3] Cancelar activación si se puede determinar que el usuario actual no es el propietario de la hdc
       ssUi.alert(
@@ -299,9 +305,7 @@ function activar() {
     }
 ```
 
-Finalmente, se procede en su caso a poner en marcha el activador por tiempo, obteniendo previamente un acceso exclusivo a la sección de código crítica por medio de [`getDocumentLock()`](https://developers.google.com/apps-script/reference/lock/lock-service?hl=en#getDocumentLock()) y [`waitLock(1)`](https://developers.google.com/apps-script/reference/lock/lock?hl=en#waitLock(Integer)), que fallará inmediatamente con una excepción, capturada por el bloque [`try...catch`](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Statements/try...catch), en el caso de que otra instancia del script estuviera tratando de realizar también la activación al mismo tiempo.
-
-Si todo va bien, este bloque de código invocará a continuación `gestionarTrigger('ON')` para instalar el activador, guardando en la propiedad del documento indicada por la constante de texto `EMAYORDOMO.propActivado` la dirección de email del usuario que haya conseguido ejecutar este procedimiento con éxito.
+En caso contrario, se procede, en su caso, a tratar de poner en marcha el activador por tiempo, obteniendo previamente un acceso exclusivo a la sección de código crítica por medio de [`getDocumentLock()`](https://developers.google.com/apps-script/reference/lock/lock-service?hl=en#getDocumentLock()) y [`waitLock(1)`](https://developers.google.com/apps-script/reference/lock/lock?hl=en#waitLock(Integer)), que fallará inmediatamente con una excepción, capturada por el bloque [`try...catch`](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Statements/try...catch) si otra instancia del script estuviera tratando de realizar también la activación en ese mismo instante.
 
 ```javascript
     // [4] Continuamos con activación a menos que se haya cancelado en [2] o [3]
@@ -313,7 +317,13 @@ Si todo va bien, este bloque de código invocará a continuación `gestionarTrig
 
         // Queremos fallar cuanto antes
         mutex.waitLock(1);
+```
 
+Si el script consigue acceder al bloque de código protegido por el semáforo de acceso, invocará a continuación `gestionarTrigger('ON')` para instalar el activador. Si la llamada tiene éxito se escribe la dirección de email del usuario que ha conseguido ejecutar este procedimiento en la propiedad del documento indicada por la constante de texto `EMAYORDOMO.propActivado`. 
+
+En caso contrario, o si se ha producido algún otro error en tiempo de ejecución, se emiten las alertas correspondientes.
+
+```javascript
         const resultado = gestionarTrigger('ON');
         let mensaje;    
         if (resultado == 'OK') {
@@ -334,7 +344,7 @@ Si todo va bien, este bloque de código invocará a continuación `gestionarTrig
           ssUi.ButtonSet.OK);
 
       } catch(e) {
-        // No ha sido posible obtener acceso al bloque de códido mutex
+   		// No ha sido posible obtener acceso al bloque de código exclusivo
         ssUi.alert(
           `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
           `${EMAYORDOMO.simboloError} En este momento no es posible activar el proceso en 2º plano, inténtalo más tarde.`,
@@ -344,57 +354,61 @@ Si todo va bien, este bloque de código invocará a continuación `gestionarTrig
   }
 ```
 
-Y, antes de terminar, se actualiza el menú para reflejar el cambio en el primer comando, que ahora se transformará en `⏸️ Dejar de procesar etiquetas cada hora`.
+Antes de terminar, se actualiza nuevamente el menú del script para reflejar el cambio en el primer comando, que ahora se transformará en `⏸️ Dejar de procesar etiquetas cada hora` siempre y cuando la activación del _trigger_ se haya realizado del modo esperado.
 
 ```javascript
   // Se ejecuta siempre para sincronizar estado del menú cuanto antes cuando hay varias instancias abiertas de la hdc
   construirMenu(PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado));
-  
+
 }
 ```
 
-![](https://user-images.githubusercontent.com/12829262/123549669-3889eb00-d76a-11eb-8e82-578ec15df79c.png)
-
-La función emite a lo largo de su ejecución diversas alertas visibles con el método [`alert(title, prompt, buttons)`](https://developers.google.com/apps-script/reference/base/ui.html?hl=en#alert(String,String,ButtonSet)) para mostrar lo que está ocurriendo.
+Como puedes apreciar, se emiten numerosas alertas visibles con el método [`alert(title, prompt, buttons)`](https://developers.google.com/apps-script/reference/base/ui.html?hl=en#alert(String,String,ButtonSet)) para mostrar lo que está ocurriendo en cada momento a lo largo del proceso.
 
 ### desactivar()
 
-Esta función trata de eliminar un _trigger_ activado previamente, teniendo en cuenta todas las consideraciones que se han hecho acerca de la casuística de concurrencia de la que ya se ha hablado.
+Esta función, complementaria de la anterior, es invocada por el comando `⏸️ Dejar de procesar etiquetas cada hora` del menú del script y trata de eliminar un _trigger_ previamente activado, teniendo en cuenta todas las consideraciones acerca de la casuística de concurrencia mencionadas.
 
-Nuevamente se utiliza un bloque de ejecución en exclusión mutua para acceder a la propiedad del documento `EMAYORDOMO.propActivado`.
+![](https://user-images.githubusercontent.com/12829262/123549669-3889eb00-d76a-11eb-8e82-578ec15df79c.png)
 
-Si el usuario que ejecuta la función es el mismo que realizó previamente la activación, se invoca inmediatamente `gestionarTrigger('OFF')`, controlando como siempre los posibles errores en tiempo de ejecución en todo momento mediante otro bloque [`try...catch`](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Statements/try...catch).
+Nuevamente se utiliza un bloque de ejecución en exclusión mutua para acceder a la propiedad del documento `EMAYORDOMO.propActivado`. Si el usuario que ejecuta la función es el mismo que realizó previamente la activación, se invoca inmediatamente `gestionarTrigger('OFF')`, controlando como siempre los posibles errores en tiempo de ejecución en todo momento mediante un bloque [`try...catch`](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Statements/try...catch).
 
 ```javascript
-  const ssUi = SpreadsheetApp.getUi();
-  const mutex = LockService.getDocumentLock();
-  try {
-    
-     // Queremos fallar cuanto antes
-    mutex.waitLock(1);
-    
-    const activadoPor = PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado);
-        
-    if (activadoPor == Session.getEffectiveUser()) {
+/**
+ * Menú >> Desactivar
+ * Trata de eliminar el trigger de tratamiento de respuestas (un usuario nunca tiene acceso a los triggers de otro)
+ */
+function desactivar() {
 
-      const resultado = gestionarTrigger('OFF');
-      let mensaje;
-      if (resultado == 'OK') {     
-        mensaje = `Ya no se está vigilando el buzón de Gmail de ${activadoPor}.`;
-        PropertiesService.getDocumentProperties().setProperty(EMAYORDOMO.propActivado, '');
-      } else {
-        mensaje = `${EMAYORDOMO.simboloError} Se ha producido un error al desactivar el proceso en 2º plano: 
-        
-        ${resultado}`;
-      } 
-      
-      // Aquí termina la sección crítica cuando se intenta realizar desactivación
-      mutex.releaseLock();
+  const ssUi = SpreadsheetApp.getUi();
+  const mutex = LockService.getDocumentLock();
+  try {
+    
+     // Queremos fallar cuanto antes
+    mutex.waitLock(1);
+    
+    const activadoPor = PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado);
+        
+    if (activadoPor == Session.getEffectiveUser()) {
 
-      ssUi.alert(
-        `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
-        mensaje,
-        ssUi.ButtonSet.OK);
+      const resultado = gestionarTrigger('OFF');
+      let mensaje;
+      if (resultado == 'OK') {     
+        mensaje = `Ya no se está vigilando el buzón de Gmail de ${activadoPor}.`;
+        PropertiesService.getDocumentProperties().setProperty(EMAYORDOMO.propActivado, '');
+      } else {
+        mensaje = `${EMAYORDOMO.simboloError} Se ha producido un error al desactivar el proceso en 2º plano: 
+        
+        ${resultado}`;
+      } 
+      
+      // Aquí termina la sección crítica cuando se intenta realizar desactivación
+      mutex.releaseLock();
+
+      ssUi.alert(
+        `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+        mensaje,
+        ssUi.ButtonSet.OK);
 ```
 
 En caso contrario, simplemente se emite una alerta informativa.
@@ -417,8 +431,7 @@ En caso contrario, simplemente se emite una alerta informativa.
         ssUi.ButtonSet.OK);
     }        
   } catch (e) {
-    // No ha sido posible obtener acceso al bloque de códido mutex
-
+    // No ha sido posible obtener acceso al bloque de código exclusivo
     ssUi.alert(
       `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
       `${EMAYORDOMO.simboloError} En este momento no es posible desactivar el proceso en 2º plano, inténtalo más tarde.`,
@@ -426,14 +439,62 @@ En caso contrario, simplemente se emite una alerta informativa.
   }
 ```
 
-En todos los casos se actualiza el menú del script antes de finalizar.
+En todos los casos se actualiza el menú del script antes de finalizar y, como siempre, se lanzan alertas para mantener al usuario informado.
 
 ```javascript
   // Se ejecuta siempre para sincronizar estado del menú cuanto antes cuando hay varias instancias abiertas de la hdc
   construirMenu(PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado));
+
+}
 ```
 
 ### gestionarTrigger()
+
+Se trata de una función auxiliar a la que llaman tanto `activar()` como `desactivar()`. Es la que se encarga realmente de crear o destruir el _trigger_, devolviendo como resultado un valor que indica si la operación ha podido realizare con éxito o no.
+
+```javascript
+/**
+ * Instala o elimina el trigger que se ejecuta cada hora
+ * @param {string} orden "ON" | "OFF"
+ * @return {string} Mensaje de error / 'OK'.
+ */
+function gestionarTrigger(orden) {
+  
+  let estado = 'OK';
+  
+  switch (orden) {
+      
+    case 'ON':  
+      // Crear trigger
+      try {
+        ScriptApp.newTrigger('procesarEmails')
+        .timeBased()
+        .everyHours(EMAYORDOMO.horasActivador)
+        .create();
+        console.info('Creado');
+      } catch(e) {
+        estado = e;
+      }
+      break;
+      
+    case 'OFF':
+      // Eliminar trigger(s)
+      try {
+        const triggers = ScriptApp.getProjectTriggers();
+        triggers.filter(t => t.getEventType() ==  ScriptApp.EventType.CLOCK).map(trigger => ScriptApp.deleteTrigger(trigger));
+      } catch (e) {
+        estado = e;
+      }
+      
+      break;
+  }
+  
+  return estado;
+  
+}
+```
+
+Importantísimo de nuevo el uso de un bloque [`try...catch`](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Statements/try...catch) para dar caza a los errores en tiempo de ejecución y _fallar graciosamente_ cuando corresponda. Y es que si algo puede ir mal al utilizar los servicios de Apps Script, ten por seguro que en algún momento irá mal. Más vale que estés preparados para manejar la situación.
 
 ## Código.gs
 
