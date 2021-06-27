@@ -127,16 +127,14 @@ Además, se han dispuesto tres controles de filtro en la parte superior para fac
 
 ## acercaDe.html
 
-Se trata de una plantilla HTML necesaria para generar la ventana que muestra información sobre eMayordomo. Se utiliza el servicio de plantillas HTML ([HTMLService](https://developers.google.com/apps-script/guides/html)) y sendos scriptlets explícitos ([printing scriptlets](https://developers.google.com/apps-script/guides/html/templates#printing_scriptlets)) para parametrizar las cadenas de texto que contienen el nombre la versión del script.
+Se trata de una plantilla HTML necesaria para generar la ventana que muestra información sobre eMayordomo. Se utiliza el servicio de plantillas HTML ([HTMLService](https://developers.google.com/apps-script/guides/html)) y sendos scriptlets explícitos ([printing scriptlets](https://developers.google.com/apps-script/guides/html/templates#printing_scriptlets)) para parametrizar las cadenas de texto que contienen el nombre y la versión del script.
 
 ```javascript
 function acercaDe() {
-  
   let panel = HtmlService.createTemplateFromFile('acercaDe');
   panel.version = EMAYORDOMO.version;
   panel.nombre = EMAYORDOMO.nombre;
   SpreadsheetApp.getUi().showModalDialog(panel.evaluate().setWidth(420).setHeight(450), `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`);
-
 }
 ```
 
