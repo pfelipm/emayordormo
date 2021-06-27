@@ -181,7 +181,11 @@ La interfaz de usuario de eMayordormo no contempla en estos momentos la posibili
 
 :point\_right: [Ver vídeo demostrativo en YouTube](https://youtu.be/O4HvbyFLeHw)
 
-Adicionalmente, y dado que eMayordomo require que se hayan definido una serie de reglas de filtro sobre el buzón de Gmail que se desea vigilar, se establece una **verificación adicional para impedir que un usuario distinto al propietario de la hoja de cálculo de control instale el activador**. Se supone, por tanto, que **el propietario de ambos elementos (buzón y hoja de cálculo) es el mismo**. Esta comprobación, no obstante, no puede realizarse cuando la hoja de cálculo reside en una unidad compartida. En esa circunstancia, eMayordomo informará al usuario y solicitará su confirmación antes de poner en marcha el activador por tiempo.
+Adicionalmente, y dado que eMayordomo require que se hayan definido una serie de reglas de filtro sobre el buzón de Gmail que se desea vigilar, se establece una **verificación adicional para impedir que un usuario distinto al propietario de la hoja de cálculo de control instale el activador**. Se supone, por tanto, que **el propietario de ambos elementos (buzón y hoja de cálculo) es el mismo**.
+
+Esta comprobación, no obstante, [no puede realizarse](https://twitter.com/pfelipm/status/1404186554378108931) cuando la hoja de cálculo reside en una unidad compartida. En esta circunstancia, eMayordomo informará al usuario y solicitará su confirmación antes de poner en marcha el activador por tiempo.
+
+![Imagen](https://pbs.twimg.com/media/E3yppjMWQAEzcgZ?format=png&name=900x900)
 
 eMayordomo mostrará mensajes de alerta para mantener al usuario informado de cualquier de las circunstancias descritas.
 
@@ -212,9 +216,12 @@ Esta función es invocada por el comando `⏰ Procesar etiquetas cada hora` del 
 
 Tiene en cuenta las circunstancias descritas anteriormente, que puden combinarse entre sí de distintos modos, para evitar tanto activaciones múltiples como que un usuario distinto al propietario de la hoja de cálculo realice la instalación del _trigger_ (cuando sea posible comprobarlo).
 
- const activadoPor = PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado);
+Primeramente se comprueba si ya hay un _trigger_ activo.
 
 ```javascript
+  const ssUi = SpreadsheetApp.getUi();
+  let emailPropietario;
+  let activar = true;
   const activadoPor = PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado);
   // [1] Cancelar si ya está activado
   if (activadoPor) {
@@ -233,29 +240,85 @@ Tiene en cuenta las circunstancias descritas anteriormente, que puden combinarse
     }
 ```
 
-```javascript
-	const mutex = LockService.getDocumentLock();
-      try {
+ A continuación, se verifica si la hoja de cálculo está alojada en una unidad compartida.
 
-        // Queremos fallar cuanto antes
-        mutex.waitLock(1);
+```javascript
+    // [2] Si la hdc está en unidad compartida solicitar confirmación para proseguir o cancelar activación
+    if (!emailPropietario) {
+      activar = ssUi.alert(
+        `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+        `Solo el propietario del buzón de Gmail en el que se han definido las reglas de
+        filtrado, etiquetas y borradores debe realizar la activación en 2º plano.
         
-        const resultado = gestionarTrigger('ON');
-        let mensaje;    
-        if (resultado == 'OK') {
-          mensaje = `Vigilando ahora el buzón de Gmail de ${emailUsuarioActivo}.`;
-          PropertiesService.getDocumentProperties().setProperty(EMAYORDOMO.propActivado, emailUsuarioActivo);
-        } else {
-          mensaje = `${EMAYORDOMO.simboloError} Se ha producido un error en la activación del proceso en 2º plano: 
-          
-          ${resultado}`;
-        }
-        
-        // Aquí termina la sección crítica cuando se intenta realizar activación
-        mutex.releaseLock();
+        ¿Seguro que deseas continuar?`,
+        ssUi.ButtonSet.OK_CANCEL) == ssUi.Button.OK;
+      if (!activar) {
+        ssUi.alert(
+          `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+          `Activación en 2º plano cancelada.`,
+          ssUi.ButtonSet.OK);
+      }
+    } else if (emailPropietario != emailUsuarioActivo) {
+      // [3] Cancelar activación si se puede determinar que el usuario actual no es el propietario de la hdc
+      ssUi.alert(
+      `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+      `${EMAYORDOMO.simboloError} Solo ${emailPropietario} debe activar el proceso en 2º plano.`,
+      ssUi.ButtonSet.OK);
+      activar = false;
+    }
 ```
 
-En su caso, invoca `gestionarTrigger('ON')` para instalarlo, guardando en la propiedad del documento `EMAYORDOMO.propActivado` la dirección de email del usuario que ha ejecutado esta función.
+Finalmente, se procede en su caso a poner en marcha el activador por tiempo, obteniendo previamente un acceso exclusivo a la sección de código crítica por medio de `getDocumentLock()`. Se invoca `gestionarTrigger('ON')` para instalarlo, guardando en la propiedad del documento indicada por la constante de texto `EMAYORDOMO.propActivado` la dirección de email del usuario que ha conseguido ejecutar este procedimiento con éxito.
+
+```javascript
+    // [4] Continuamos con activación a menos que se haya cancelado en [2] o [3]
+    if (activar) {
+
+      // Solo gestionaremos el activador si no hay otra instancia del script ya intentándolo
+      const mutex = LockService.getDocumentLock();
+      try {
+
+        // Queremos fallar cuanto antes
+        mutex.waitLock(1);
+        
+        const resultado = gestionarTrigger('ON');
+        let mensaje;    
+        if (resultado == 'OK') {
+          mensaje = `Vigilando ahora el buzón de Gmail de ${emailUsuarioActivo}.`;
+          PropertiesService.getDocumentProperties().setProperty(EMAYORDOMO.propActivado, emailUsuarioActivo);
+        } else {
+          mensaje = `${EMAYORDOMO.simboloError} Se ha producido un error en la activación del proceso en 2º plano: 
+          
+          ${resultado}`;
+        }
+        
+        // Aquí termina la sección crítica cuando se intenta realizar activación
+        mutex.releaseLock();
+        
+        ssUi.alert(
+          `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+          mensaje,
+          ssUi.ButtonSet.OK);
+        
+      } catch(e) {
+        // No ha sido posible obtener acceso al bloque de códido mutex
+        ssUi.alert(
+          `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+          `${EMAYORDOMO.simboloError} En este momento no es posible activar el proceso en 2º plano, inténtalo más tarde.`,
+          ssUi.ButtonSet.OK);
+      }
+    }
+  }
+```
+
+Y, antes de terminar, se actualiza el menú para reflejar el cambio en el primer comando, que ahora se transformará en `⏸️ Dejar de procesar etiquetas cada hora`.
+
+```
+  // Se ejecuta siempre para sincronizar estado del menú cuanto antes cuando hay varias instancias abiertas de la hdc
+  construirMenu(PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado));
+```
+
+![](https://user-images.githubusercontent.com/12829262/123549669-3889eb00-d76a-11eb-8e82-578ec15df79c.png)
 
 ### desactivar()
 
