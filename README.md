@@ -129,7 +129,7 @@ Además, se han dispuesto tres controles de filtro en la parte superior para fac
 
 Se trata de una plantilla HTML necesaria para generar la ventana que muestra información sobre eMayordomo.
 
-Se utiliza el servicio de plantillas HTML ([HTMLService](https://developers.google.com/apps-script/guides/html)) y sendos _scriptlets_ explícitos ([printing scriptlets](https://developers.google.com/apps-script/guides/html/templates#printing_scriptlets)) para parametrizar los elementos de texto que indican el nombre y la versión del script.
+Se utiliza el servicio de plantillas HTML [(HTMLService](https://developers.google.com/apps-script/guides/html)) y sendos [scriptlets explícitos](https://developers.google.com/apps-script/guides/html/templates#printing_scriptlets) (_printing scriptlets_) para parametrizar los elementos de texto que indican el nombre y la versión del script.
 
 ![](https://user-images.githubusercontent.com/12829262/123538857-0b701500-d737-11eb-853f-ad97d5d8b7ce.png)
 
@@ -166,7 +166,7 @@ La pequeña imagen en la cabecera del cuadro de diálogo se ha insertado usando 
 
 ## Activador.gs
 
-El modo de funcionamiento natural de eMayordomo es en 2º plano, gracias a un activador por tiempo instalable ([time-driven installable trigger](https://developers.google.com/apps-script/guides/triggers/installable)), instanciado mediante la clase [ClockTriggerBuilder](https://developers.google.com/apps-script/reference/script/clock-trigger-builder),  que es inicializado por el usuario mediante el comando del menú del script `⏰ Procesar etiquetas cada hora`.
+El modo de funcionamiento natural de eMayordomo es en 2º plano, gracias a un [activador por tiempo instalable](https://developers.google.com/apps-script/guides/triggers/installable), instanciado mediante la clase [`ClockTriggerBuilder`](https://developers.google.com/apps-script/reference/script/clock-trigger-builder),  que es inicializado por el usuario mediante el comando del menú del script `⏰ Procesar etiquetas cada hora`.
 
 ![](https://user-images.githubusercontent.com/12829262/123541712-2b5b0500-d746-11eb-91f9-f7a00851e22c.png)
 
@@ -242,7 +242,7 @@ Primeramente se comprueba si ya hay un _trigger_ activo. De ser así se cancela 
  * unidad compartida, en ese caso se solicita confirmación al usuario.
  */
 function activar() {
- 
+
   const ssUi = SpreadsheetApp.getUi();
   let emailPropietario;
   let activar = true;
@@ -344,7 +344,7 @@ En caso contrario, o si se ha producido algún otro error en tiempo de ejecució
           ssUi.ButtonSet.OK);
 
       } catch(e) {
-   		// No ha sido posible obtener acceso al bloque de código exclusivo
+           // No ha sido posible obtener acceso al bloque de código exclusivo
         ssUi.alert(
           `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
           `${EMAYORDOMO.simboloError} En este momento no es posible activar el proceso en 2º plano, inténtalo más tarde.`,
@@ -383,12 +383,12 @@ function desactivar() {
   const ssUi = SpreadsheetApp.getUi();
   const mutex = LockService.getDocumentLock();
   try {
-    
+
      // Queremos fallar cuanto antes
     mutex.waitLock(1);
-    
+
     const activadoPor = PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado);
-        
+
     if (activadoPor == Session.getEffectiveUser()) {
 
       const resultado = gestionarTrigger('OFF');
@@ -398,10 +398,10 @@ function desactivar() {
         PropertiesService.getDocumentProperties().setProperty(EMAYORDOMO.propActivado, '');
       } else {
         mensaje = `${EMAYORDOMO.simboloError} Se ha producido un error al desactivar el proceso en 2º plano: 
-        
+
         ${resultado}`;
       } 
-      
+
       // Aquí termina la sección crítica cuando se intenta realizar desactivación
       mutex.releaseLock();
 
@@ -459,9 +459,9 @@ Se trata de una función auxiliar a la que llaman tanto `activar()` como `desact
  * @return {string} Mensaje de error / 'OK'.
  */
 function gestionarTrigger(orden) {
-  
+
   let estado = 'OK';
-  
+
   switch (orden) {
       
     case 'ON':  
@@ -488,9 +488,9 @@ function gestionarTrigger(orden) {
       
       break;
   }
-  
+
   return estado;
-  
+
 }
 ```
 
@@ -499,6 +499,21 @@ Importantísimo de nuevo el uso de un bloque [`try...catch`](https://developer.m
 ## Código.gs
 
 ### onOpen()
+
+Esta es la función que se ejecuta cada vez que se abre la hoja de cálculo. Se limita a leer la propiedad que identifica al usuario que ha realizado la activación y pasársela como parámetro a la función `construirMenu()`, que es la que realmente crea el menú del script.
+
+```javascript
+/**
+ * Construye el menú de la aplicación al abrir la hdc de acuerdo con el estado de activación
+ */
+function onOpen() {
+  
+  construirMenu(PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado));
+ 
+}
+```
+
+Como probablemente sepas, [onOpen()](https://developers.google.com/apps-script/guides/triggers?hl=en#onopene) es un [activador simple](https://developers.google.com/apps-script/guides/triggers?hl=en#onopene). Hay que tener cuidado con el código que se mete en ellos dado que hay ciertas cosas que no pueden hacer, más concretamente no pueden utilizar servicios que requieran de autorización (más sobre esto en el apartado 2.1 de este [artículo](https://comunidad.gedu.es/post/bas-002-exportar-diapositivas-de-una-presentacion-como-png-6072aa8f5c5c167af76f8508)). Afortunadamente, leer las propiedades del documento usando `PropertiesService` no es una de ellas.
 
 ### construirMenu()
 
