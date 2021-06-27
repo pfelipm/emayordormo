@@ -223,6 +223,7 @@ Primeramente se comprueba si ya hay un _trigger_ activo.
   let emailPropietario;
   let activar = true;
   const activadoPor = PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado);
+  
   // [1] Cancelar si ya está activado
   if (activadoPor) {
     ssUi.alert(
@@ -325,6 +326,80 @@ Y, antes de terminar, se actualiza el menú para reflejar el cambio en el primer
 La función emite a lo largo de su ejecución diversas alertas visibles con el método [`alert(title, prompt, buttons)`](https://developers.google.com/apps-script/reference/base/ui.html?hl=en#alert(String,String,ButtonSet)) para mostrar lo que está ocurriendo.
 
 ### desactivar()
+
+Esta función trata de eliminar un _trigger_ activado previamente, teniendo en cuenta todas las consideraciones que se han hecho acerca de la casuística de concurrencia de la que ya se ha hablado.
+
+Nuevamente se utiliza un bloque de ejecución en exclusión mutua para acceder a la propiedad del documento `EMAYORDOMO.propActivado`.
+
+Si el usuario que ejecuta la función es el mismo que realizó previamente la activación, se invoca inmediatamente `gestionarTrigger('OFF')`, controlando como siempre los posibles errores en tiempo de ejecución en todo momento mediante otro bloque [`try...catch`](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Statements/try...catch).
+
+```javascript
+  const ssUi = SpreadsheetApp.getUi();
+  const mutex = LockService.getDocumentLock();
+  try {
+    
+     // Queremos fallar cuanto antes
+    mutex.waitLock(1);
+    
+    const activadoPor = PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado);
+        
+    if (activadoPor == Session.getEffectiveUser()) {
+
+      const resultado = gestionarTrigger('OFF');
+      let mensaje;
+      if (resultado == 'OK') {     
+        mensaje = `Ya no se está vigilando el buzón de Gmail de ${activadoPor}.`;
+        PropertiesService.getDocumentProperties().setProperty(EMAYORDOMO.propActivado, '');
+      } else {
+        mensaje = `${EMAYORDOMO.simboloError} Se ha producido un error al desactivar el proceso en 2º plano: 
+        
+        ${resultado}`;
+      } 
+      
+      // Aquí termina la sección crítica cuando se intenta realizar desactivación
+      mutex.releaseLock();
+
+      ssUi.alert(
+        `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+        mensaje,
+        ssUi.ButtonSet.OK);
+```
+
+En caso contrario, simplemente se emite una alerta informativa.
+
+```javascript
+    } else {
+        
+      // Aquí termina la sección crítica cuando *no* se realiza desactivación porque lo ha activado otro usuario o no está activado
+      mutex.releaseLock();
+
+
+      if (activadoPor == '') {
+        mensaje = `${EMAYORDOMO.simboloError} El proceso en 2º plano no está activado.`;
+      } else {
+        mensaje = `${EMAYORDOMO.simboloError} El proceso en 2º plano debe ser desactivado por ${activadoPor}.`;
+      }
+      ssUi.alert(
+        `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+        mensaje,
+        ssUi.ButtonSet.OK);
+    }        
+  } catch (e) {
+    // No ha sido posible obtener acceso al bloque de códido mutex
+
+    ssUi.alert(
+      `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+      `${EMAYORDOMO.simboloError} En este momento no es posible desactivar el proceso en 2º plano, inténtalo más tarde.`,
+      ssUi.ButtonSet.OK);
+  }
+```
+
+En todos los casos se actualiza el menú del script antes de finalizar.
+
+```javascript
+  // Se ejecuta siempre para sincronizar estado del menú cuanto antes cuando hay varias instancias abiertas de la hdc
+  construirMenu(PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado));
+```
 
 ### gestionarTrigger()
 
