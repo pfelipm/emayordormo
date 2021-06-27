@@ -304,7 +304,7 @@ Si el usuario actual del script no es quien realizó la activación, el proceso 
     }
 ```
 
-En caso contrario, se procede, en su caso, a tratar de poner en marcha el activador por tiempo, obteniendo previamente un acceso exclusivo a la sección de código crítica por medio de [`getDocumentLock()`](https://developers.google.com/apps-script/reference/lock/lock-service?hl=en#getDocumentLock()) y [`waitLock(1)`](https://developers.google.com/apps-script/reference/lock/lock?hl=en#waitLock(Integer)), que fallará inmediatamente con una excepción, capturada por el bloque [`try...catch`](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Statements/try...catch) si otra instancia del script estuviera tratando de realizar también la activación en ese mismo instante.
+De ser así se procede, en su caso, a tratar de poner en marcha el activador por tiempo, obteniendo previamente un acceso exclusivo a la sección de código crítica por medio de [`getDocumentLock()`](https://developers.google.com/apps-script/reference/lock/lock-service?hl=en#getDocumentLock()) y [`waitLock(1)`](https://developers.google.com/apps-script/reference/lock/lock?hl=en#waitLock(Integer)), que fallará inmediatamente con una excepción, capturada por el bloque [`try...catch`](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Statements/try...catch) si otra instancia del script estuviera tratando de realizar también la activación en ese mismo instante.
 
 ```javascript
     // [4] Continuamos con activación a menos que se haya cancelado en [2] o [3]
@@ -547,9 +547,128 @@ Esta función es invocada por el comando `💡 Acerca de eMayordomo` y se util
 
 ### ejecutarManualmente()
 
+eMayordomo también admite la ejecución manual del proceso de atención a los mensajes recibidos en el buzón de Gmail. Esto puede resultar de utilidad para procesar correos electrónicos a los que no se ha respondido como consecuencia de algún error temporal.
+
+Si un usuario distinto al que ejecuta la función ya ha activado el funcionamiento en 2º plano de eMayordomo la ejecución manual queda cancelada. Lógico, el buzón de Gmail no será en ese caso el del usuario actual.
+
+```javascript
+/**
+ * Menú >> Ejecutar manualmente la función procesarEmails(),
+ * Trata de impedir que un usuario distinto al propietario de la hdc realice un proceso manual
+ * esto es una medida de seguridad para evitar que eMayordomo actúe sobre el buzón de
+ * Gmail incorrecto. La comprobación no es concluyente cuando la hdc reside en una
+ * unidad compartida, en ese caso se solicita confirmación al usuario para proceder.
+ */
+function ejecutarManualmente() {
+
+  const ssUi = SpreadsheetApp.getUi();
+  const activadoPor = PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado);
+  const emailUsuarioActivo = Session.getEffectiveUser().getEmail();
+  let ejecutar = true;
+
+  // [1] ¿Otro usuario ha realizado ya la activación?
+  if (activadoPor && activadoPor != emailUsuarioActivo) {
+    ssUi.alert(
+    `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+    `${EMAYORDOMO.simboloError} Ya hay un proceso en 2º plano activado por ${activadoPor}, no parece
+    buena idea que un usuario distinto (¡tú!) realice un procesado manual.`,
+    ssUi.ButtonSet.OK);
+```
+
+En caso contrario, se pasa a determinar quién es el propietario de  la hoja de cálculo, del mismo modo que en la función `activar()`.
+
+```
+  } else {
+    // No hay proceso en 2º plano activo, veamos quién es el propietario de la hdc ¡getOwner() devuelve null si hdc está en unidad compartida!
+    let emailPropietario;
+    const propietario = SpreadsheetApp.getActiveSpreadsheet().getOwner();
+    if (propietario) {
+      emailPropietario = propietario.getEmail();
+    } else {
+      emailPropietario = null;
+    }
+```
+
+Lo que sigue es muy similar. Si la hoja de cálculo está en una unidad compartida se pide confirmación al usuario.
+
+```
+    // [2] Si la hdc está en unidad compartida y el proceso en 2º plano no ha sido activado por el usuario actual solicitar confirmación para proseguir
+    if (!emailPropietario && activadoPor != emailUsuarioActivo) {
+      ejecutar = ssUi.alert(
+        `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+        `Solo el propietario del buzón de Gmail en el que se han definido las reglas de
+        filtrado, etiquetas y borradores debe realizar un procesado manual.
+        
+        ¿Seguro que deseas continuar?`,
+        ssUi.ButtonSet.OK_CANCEL) == ssUi.Button.OK;
+```
+
+Si no lo está, se verifica si el usuario activo no es el propietario de la hoja de cálculo, en ese caso se cancela también la ejecución manual.
+
+```
+   } else if (emailPropietario && emailPropietario != emailUsuarioActivo) {
+     // [3] Cancelar ejecución si se puede determinar que el usuario actual no es el propietario de la hdc
+     ssUi.alert(
+     `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+     `${EMAYORDOMO.simboloError} Solo ${emailPropietario} debe realizar un procesado manual.`,
+     ssUi.ButtonSet.OK);
+     ejecutar = false;
+   }
+```
+
+Por último se llama, en su caso, a la función `procesarEmails()`.
+
+```
+    // Seguir con ejecución manual a menos que se haya cancelado en [2] o [3]
+    if (ejecutar) {
+      // Ejecutar proceso sobre el buzón de Gmail
+      procesarEmails();
+      ssUi.alert(
+        `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+        `Ejecución manual terminada. Revisa la hoja ${EMAYORDOMO.tablaLog.nombre}.`,
+        ssUi.ButtonSet.OK);
+    } else {
+      // Activación cancelada
+      ssUi.alert(
+        `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+        `Ejecución manual cancelada.`,
+        ssUi.ButtonSet.OK);
+    }
+  }
+
+}
+```
+
 ### procesarEmails()
 
 ### etiquetasMensaje()
+
+Es una sencilla función auxiliar que devuelve `TRUE` si el mensaje que se pasa como parámetro está marcado con la etiqueta facilitada.
+
+```
+/**
+ * Devuelve TRUE si el mensaje está etiquetado con la etiqueta
+ * que se pasa como parámetro
+ * @param {GmailMessage} msg
+ * @param {string} etiqueta
+ * @returns {Boolean}
+ */
+function etiquetasMensaje(msg, etiqueta) {
+
+  const id = msg.getId();
+  const idEtiqueta = Gmail.Users.Labels.list('me').labels.find(e => e.name == etiqueta).id;
+  etiquetas = Gmail.Users.Messages.get('me', id).labelIds;
+  console.info(etiquetas)
+  
+  if (etiquetas.map) {
+    return etiquetas.includes(idEtiqueta);
+  }
+  else {
+    return false;
+  }
+
+}
+```
 
 ### duplicarBorradorAPI() y extraerElementos()
 
