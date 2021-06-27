@@ -127,6 +127,34 @@ Además, se han dispuesto tres controles de filtro en la parte superior para fac
 
 ## acercaDe.html
 
+Se trata de una plantilla HTML necesaria para generar la ventana que muestra información sobre eMayordomo. Se utiliza el servicio de plantillas HTML ([HTMLService](https://developers.google.com/apps-script/guides/html)) y sendos scriptlets explícitos ([printing scriptlets](https://developers.google.com/apps-script/guides/html/templates#printing_scriptlets)) para parametrizar las cadenas de texto que contienen el nombre la versión del script.
+
+```javascript
+function acercaDe() {
+  
+  let panel = HtmlService.createTemplateFromFile('acercaDe');
+  panel.version = EMAYORDOMO.version;
+  panel.nombre = EMAYORDOMO.nombre;
+  SpreadsheetApp.getUi().showModalDialog(panel.evaluate().setWidth(420).setHeight(450), `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`);
+
+}
+```
+
+```html
+<b><?= nombre ?></b> es una plantilla de hoja de cálculo de Google que permite 
+administrar y enviar mensajes de respuesta automática, con HTML, imágenes en línea y
+adjuntos, en función de las etiquetas aplicadas a los correos electrónicos recibidos
+en un buzón de Gmail.
+...
+<p><?= version ?>.</p>
+```
+
+La pequeña imagen en la cabecera del cuadro de diálogo se ha insertado usando un [esquema de URI de datos](https://es.wikipedia.org/wiki/Esquema_de_URI_de_datos), evitando su hospedaje en un URL externo. La codificación Base 64 se ha obtenido en el conocido sitio web [Base64 Image Encoder](https://www.base64-image.de/).
+
+```html
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAaQAA...>
+```
+
 ## Activador.gs
 
 ### comprobarEstado()
