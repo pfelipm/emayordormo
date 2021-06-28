@@ -247,10 +247,8 @@ function procesarEmails() {
             hilosEtiquetados = [...hilosEtiquetados, ...paginaHilos];
             nHilo += nHilos;
           }
-        // Si se han devuelto el nº máximo de mensajes solicitados haremos una nueva iteración, tal vez haya más
+        // Si se ha devuelto el nº máximo de mensajes solicitados haremos una nueva iteración, tal vez haya más
         } while (nHilos == EMAYORDOMO.maxEmails);
-
-        console.info(`Procesando etiqueta "${etiqueta}", hilos: ${hilosEtiquetados.length}.`);
 
         // Recorramos ahora los mensajes de todos los hilos
         hilosEtiquetados.forEach(hilo => {
@@ -287,9 +285,6 @@ function procesarEmails() {
                 // Enviar mensaje y eliminar estrella si todo ha ido bien
 
                 try {
-
-                  console.info(`Enviando respuesta ${plantilla} a ${remitente}`);
-
                   // Usaremos MailApp dado que GmailApp no preserva emojis en asunto ni cuerpo:
                   // https://stackoverflow.com/questions/50686254/how-to-insert-an-emoji-into-an-email-sent-with-gmailapp/50690214
                   MailApp.sendEmail(destinatario, borrador.asuntoRegEx[2],
@@ -301,7 +296,7 @@ function procesarEmails() {
                       name: remitente
                     });
 
-                  // El estado "destacado" no se refresca visualmente (sí internamente) sí ha sido establecido *manualmente* >>  https://issuetracker.google.com/issues/77320923
+                  // El estado "destacado" no se refresca visualmente (sí internamente) si ha sido establecido *manualmente* >>  https://issuetracker.google.com/issues/77320923
                   mensaje.unstar().markRead().refresh();
 
                   operaciones.push(
@@ -413,7 +408,6 @@ function etiquetasMensaje(msg, etiqueta) {
   const id = msg.getId();
   const idEtiqueta = Gmail.Users.Labels.list('me').labels.find(e => e.name == etiqueta).id;
   etiquetas = Gmail.Users.Messages.get('me', id).labelIds;
-  console.info(etiquetas)
   
   if (etiquetas.map) {
     return etiquetas.includes(idEtiqueta);
