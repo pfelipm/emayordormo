@@ -644,6 +644,103 @@ Por último se llama, en su caso, a la función `procesarEmails()`.
 
 ### procesarEmails()
 
+Esta función constituye el bloque principal de eMayordomo. Contiene el código que revisa los mensajes a procesar en el buzón de entrada y envía las respuestas automáticas de acuerdo con las reglas definidas por el usuario.
+
+La cosa comienza con la lectura de una serie de parámetros de funcionamiento desde las celdas de la hoja 🔀 **Reglas**. La variable `selloTiempo` se utilizará para datar en la hoja del registro de operaciones cada la ejecución de esta función.
+
+```javascript
+/**
+ * Revisa el buzón de Gmail del usuario que lo ejecuta y responde a los mensajes
+ * con respuestas preparadas de acuerdo a las reglas de procesamiento definidas
+ * en el hojaEMAYORDOMO.tablaReglas.nombre.
+ * Los mensajes a los que se ha respondido quedan marcados como leídos y no destacados.
+ */
+function procesarEmails() {
+
+  // Sello de tiempo de este lote
+  const selloTiempo = new Date();
+
+  // Registro de operaciones
+  const operaciones = [];
+
+  // Leer reglas de procesamiento de mensajes recibidos
+  const reglas = SpreadsheetApp.getActive().getSheetByName(EMAYORDOMO.tablaReglas.nombre).getDataRange().getValues();
+  const [encabezados, ...tabla] = reglas;
+
+  // Identificar columnas en la tabla de configuración / resultados
+  // const colProcesar =  encabezados.indexOf('☑️');
+  const colEtiqueta = encabezados.indexOf('Etiqueta a procesar');
+  const colPlantilla = encabezados.indexOf('Plantilla email');
+  const colRegExEmail = encabezados.indexOf('RegEx extracción email');
+```
+
+A continuación se enumeran las etiquetas que intervienen en alguna regla (`etiquetasReglas`), las existentes en el buzón de Gmail (`etiquetasUsuario`) y los mensajes en borrador (`borradores`). Estos últimos se guardan de cierta manera con el objetivo de facilitar las acciones posteriores:
+
+*   Id del borrador.
+*   Objeto [`GmailMessage`](https://developers.google.com/apps-script/reference/gmail/gmail-message) asociado al borrador.
+*   Prefijo del asunto del mensaje, de la forma `[identificador]`. Ejemplo: Si el asunto es "_\[GEN\] Información general_", el prefijo devuelto será "_\[GEN\]_".
+*   Asunto del mensaje, sin su \[prefijo\] ni el espacio posterior que lo separa del asunto real. Siguiendo con el ejemplo anterior, aquí se guardaría "_Información general_".
+
+Para extraer prefijo y asunto se emplea un [`match()`](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Global_Objects/String/match) con sendos grupos de captura.
+
+```javascript
+  // Obtener etiquetas de las reglas a procesar: todos los campos requeridos de la regla deben ser VERDADERO (o truthy)
+  // En la hdc se impide que varias reglas se apliquen sobre una misma etiqueta por medio de validación de datos
+  const etiquetasReglas = tabla.filter(regla =>
+    regla.slice(EMAYORDOMO.tablaReglas.colInicioRegla, EMAYORDOMO.tablaReglas.colFinRegla + 1).every(campo => campo))
+    .map(regla => regla[colEtiqueta]);
+  
+  // Obtener etiquetas existentes en el buzón, la usaremos más adelante para comprobar que las reglas son válidas
+  const etiquetasUsuario = GmailApp.getUserLabels().map(etiqueta => etiqueta.getName());
+  
+  // Obtener mensajes en borrador {idBorrador, mensaje, [prefijo asunto, asunto sin prefijo]}
+  const borradores = GmailApp.getDrafts().map(borrador => 
+    ({
+      id: borrador.getId(),
+      mensaje: borrador.getMessage(),
+      // Obtener prefijo (asuntoRegEx[1]) y asunto (asuntoRegEx[2])
+      asuntoRegEx: borrador.getMessage().getSubject().match(/^(\[.+\]) (.+)$/)
+    })
+  );
+```
+
+El nombre que aparecerá como remitente en las respuestas enviadas se intenta extraer del propio nombre asignado a la hoja de cálculo. Se emplea para ello una expresión regular que intenta extraer una secuencia de texto, entre paréntesis y precedida de un espacio, en la parte final del nombre del archivo. Lo sé, esto es una rareza, pero en algún momento me debió parecer una buena idea.
+
+```
+  // Se intenta extraer el nombre del remitente de las respuestas a partir del nombre de la hoja de cálculo >> "texto (remitente)"
+  let remitente = SpreadsheetApp.getActiveSpreadsheet().getName().match(/^.+\((.+)\)$/);
+  if (remitente) {
+    remitente = remitente[1];
+  } else {
+    // ...en caso contrario, nombre usuario (valor por defecto al enviar emails con GmailApp si no se especifica 'name')
+    remitente = Session.getEffectiveUser().getEmail().match(/^(.+)@.+$/)[1];
+  }
+```
+
+El bucle principal de la función recorre cada una de las etiquetas (únicas) vinculadas a una de las reglas de auto respuesta definidas en la hoja de cálculo por medio de una `forEach()`. 
+
+```
+  // Procesar cada etiqueta
+  etiquetasReglas.forEach(etiqueta => {
+
+
+    // ¿La etiqueta que vamos a procesar existe realmente?
+
+
+    if (!etiquetasUsuario.includes(etiqueta)) {
+      console.error(`La etiqueta "${etiqueta}" no existe.`);
+      operaciones.push(
+        {
+          estado: EMAYORDOMO.simboloError,
+          inicio: selloTiempo,
+          tiempo: new Date(),
+          etiqueta: etiqueta,
+          email: '',
+          plantilla: '',
+          mensaje: `Etiqueta "${etiqueta}" no existe en el buzón`
+        });
+```
+
 ### etiquetasMensaje()
 
 Es una sencilla función auxiliar que devuelve `TRUE` si el mensaje que se pasa como parámetro está marcado con la etiqueta de Gmail facilitada.
