@@ -678,8 +678,8 @@ A continuación se enumeran las etiquetas que intervienen en alguna regla (`etiq
 
 *   Id del borrador.
 *   Objeto [`GmailMessage`](https://developers.google.com/apps-script/reference/gmail/gmail-message) asociado al borrador.
-*   Prefijo del asunto del mensaje, de la forma `[identificador]`. Ejemplo: Si el asunto es "_\[GEN\] Información general_", el prefijo devuelto será "_\[GEN\]_".
-*   Asunto del mensaje, sin su \[prefijo\] ni el espacio posterior que lo separa del asunto real. Siguiendo con el ejemplo anterior, aquí se guardaría "_Información general_".
+*   Prefijo del asunto del mensaje, de la forma `[identificador]`. Ejemplo: Si el asunto es "_\[GEN\] Información general_", el prefijo almacenado será "_\[GEN\]_".
+*   Asunto del mensaje, sin su \[prefijo\] ni el espacio posterior que lo separa del asunto real. Siguiendo con el ejemplo anterior, aquí se guardará "_Información general_".
 
 Para extraer prefijo y asunto se emplea un [`match()`](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Global_Objects/String/match) con sendos grupos de captura.
 
@@ -689,10 +689,10 @@ Para extraer prefijo y asunto se emplea un [`match()`](https://developer.mozilla
   const etiquetasReglas = tabla.filter(regla =>
     regla.slice(EMAYORDOMO.tablaReglas.colInicioRegla, EMAYORDOMO.tablaReglas.colFinRegla + 1).every(campo => campo))
     .map(regla => regla[colEtiqueta]);
-  
+
   // Obtener etiquetas existentes en el buzón, la usaremos más adelante para comprobar que las reglas son válidas
   const etiquetasUsuario = GmailApp.getUserLabels().map(etiqueta => etiqueta.getName());
-  
+
   // Obtener mensajes en borrador {idBorrador, mensaje, [prefijo asunto, asunto sin prefijo]}
   const borradores = GmailApp.getDrafts().map(borrador => 
     ({
@@ -712,20 +712,18 @@ El nombre que aparecerá como remitente en las respuestas enviadas se intenta ex
   if (remitente) {
     remitente = remitente[1];
   } else {
-    // ...en caso contrario, nombre usuario (valor por defecto al enviar emails con GmailApp si no se especifica 'name')
+    // ...en caso contrario, nombre usuario (valor por defecto al enviar emails con GmailApp/MailApp si no se especifica 'name')
     remitente = Session.getEffectiveUser().getEmail().match(/^(.+)@.+$/)[1];
   }
 ```
 
-El bucle principal de la función recorre cada una de las etiquetas (únicas) vinculadas a una de las reglas de auto respuesta definidas en la hoja de cálculo por medio de una `forEach()`. 
+El bucle principal de la función recorre cada una de las etiquetas (únicas) vinculadas a una de las reglas de auto respuesta definidas en la hoja de cálculo por medio de una `forEach()`. La primera comprobación se asegura de que la regla asociada a la etiqueta sea válida. De no ser así, se registra el error en el vector `operaciones` y se pasa a analizar la siguiente etiqueta.
 
 ```
   // Procesar cada etiqueta
   etiquetasReglas.forEach(etiqueta => {
 
-
-    // ¿La etiqueta que vamos a procesar existe realmente?
-
+    // ¿La etiqueta que vamos a procesar existe realmente en el buzón?
 
     if (!etiquetasUsuario.includes(etiqueta)) {
       console.error(`La etiqueta "${etiqueta}" no existe.`);
@@ -739,7 +737,10 @@ El bucle principal de la función recorre cada una de las etiquetas (únicas) vi
           plantilla: '',
           mensaje: `Etiqueta "${etiqueta}" no existe en el buzón`
         });
+    }
 ```
+
+Seguidamente se verifica 
 
 ### etiquetasMensaje()
 
