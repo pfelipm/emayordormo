@@ -1,7 +1,5 @@
 ![](https://user-images.githubusercontent.com/12829262/122110050-6132ec00-ce1e-11eb-99f8-e0ce463c6cd6.png)
 
-**\*\*\* En construcción \*\*\***
-
 # Tabla de contenidos
 
 *   [¿Qué es eMayordormo?](#qu%C3%A9-es-emayordormo)
@@ -14,6 +12,7 @@
     *   [acercaDe.html](#acercadehtml)
     *   [Activador.gs](#activadorgs)
     *   [Código.gs](#c%C3%B3digogs)
+
 *   [Licencia](#licencia)
 
 # ¿Qué es eMayordormo?
@@ -1011,7 +1010,7 @@ function actualizarLog(registros) {
     if (filasNuevas) hoja.insertRowsBefore(EMAYORDOMO.tablaLog.filInicialDatos,filasNuevas);
     hoja.getRange(EMAYORDOMO.tablaLog.filInicialDatos, 1, tablaRegistros.length, tablaRegistros[0].length).setValues(tablaRegistros);
   };
-  
+
 }
 ```
 
@@ -1020,7 +1019,7 @@ Los valores más recientes aparecerán siempre en la parte superior de la hoja d
 *   Invirtiendo el vector de elementos a registrar antes de trasladarlo a la hoja de cálculo con  `registros.reverse()`.
 *   Insertado filas siempre a partir de la parte superior de la tabla.
 
-# Reflexiones finales
+# Mejoras y reflexiones
 
 eMayordomo ha sido un viaje de aprendizaje. Si tuviera que programarlo de nuevo seguramente tomaría otras decisiones de diseño.
 
