@@ -114,7 +114,10 @@ En esta pestaña se muestran ciertos eventos de funcionamiento registrados por e
 *   Respuestas que no han podido ser enviadas, bien por algún fallo en la configuración de las reglas, bien por errores en tiempo de ejecución de cualquier índole.
 *   Ejecuciones programadas o manuales en las que no se han detectado correos electrónicos a los que responder.
 
-Por comodidad, los elementos más recientes aparecerán siempre en la parte superior de la tabla, en la que se ha usado nuevamente la combinación de colores alternos que se aplicó sobre la de reglas.
+Por comodidad, los elementos más recientes aparecerán siempre en la parte superior de la tabla, en la que se ha usado nuevamente la combinación de colores alternos que se aplicó sobre la de reglas. Cada evento lleva asociado dos marcas de tiempo, que se corresponden con:
+
+*   El inicio de un proceso de revisión del buzón de Gmail.
+*   El momento en que se produce un evento específico.
 
 Además, se han dispuesto tres controles de filtro en la parte superior para facilitar un primer análisis de los datos, aunque cabe la posibilidad, tal y como [se recomendaba en el artículo previo](https://pablofelip.online/emayordomo/#mcetoc_1f829n2n14f), de llevarlos a una herramienta de visualización más avanzada como Data Studio. Se ha ajustado el color de fondo de los controles de filtro para hacerlo coincidir con el de la fila sobre la que flotan para lograr una mejor integración visual, aunque esto probablemente sea una manía mía.
 
@@ -165,7 +168,7 @@ La pequeña imagen en la cabecera del cuadro de diálogo se ha insertado usando 
 
 ## Activador.gs
 
-El modo de funcionamiento natural de eMayordomo es en 2º plano, gracias a un [activador por tiempo instalable](https://developers.google.com/apps-script/guides/triggers/installable), instanciado mediante la clase [`ClockTriggerBuilder`](https://developers.google.com/apps-script/reference/script/clock-trigger-builder),  que es inicializado por el usuario mediante el comando del menú del script `⏰ Procesar etiquetas cada hora`.
+El modo de funcionamiento natural de eMayordomo es en 2º plano, gracias a un [activador por tiempo instalable](https://developers.google.com/apps-script/guides/triggers/installable), instanciado mediante la clase [`ClockTriggerBuilder`](https://developers.google.com/apps-script/reference/script/clock-trigger-builder),  que es inicializado por el usuario con el comando del menú del script `⏰ Procesar etiquetas cada hora`.
 
 ![](https://user-images.githubusercontent.com/12829262/123541712-2b5b0500-d746-11eb-91f9-f7a00851e22c.png)
 
@@ -746,9 +749,9 @@ Las primeras comprobaciones se aseguran de que la regla asociada a la etiqueta s
       const fila = tabla.find(regla => regla[colEtiqueta] == etiqueta);
       const plantilla = fila[colPlantilla];
       const regExEmail = fila[colRegExEmail]; // Opcional
-      
+
       // ¿La plantilla (borrador) a utilizar existe? (¡cuidado con los duplicados!)
-      
+
       const borrador = borradores.find(borrador => borrador.asuntoRegEx ? borrador.asuntoRegEx[1] == plantilla : null);
       if (!borrador) {
         console.error(`El borrador con prefijo "${plantilla} " no existe.`);
@@ -766,7 +769,7 @@ Las primeras comprobaciones se aseguran de que la regla asociada a la etiqueta s
 
 Ahora se obtienen los hilos de mensajes en el buzón que están marcados con la etiqueta. En ellos se encontrarán los mensajes a los que se debe responder.
 
-El método [`getThreads()`](https://developers.google.com/apps-script/reference/gmail/gmail-label#getThreads()) no dispone de un mecanismo de tipo `nextPageToken`, similar al de otros métodos que devuelven resultados paginados como por ejemplo [`Courses.list`](https://developers.google.com/classroom/reference/rest/v1/courses/list) en el servicio avanzado / API de Classroom. No queda más remedio que invocarlo de manera iterativa hasta que el número de resultados obtenido sea inferior al valor máximo solicitado, parametrizado mediante `EMAYORDOMO.maxEmails`. ¿[Inconsistencias](https://twitter.com/pfelipm/status/1383837878686412809)? Bueno, alguna que otra, qué le vamos a hacer.
+El método usado, [`GmailLabel.getThreads()`](https://developers.google.com/apps-script/reference/gmail/gmail-label#getThreads()), no dispone de un mecanismo de tipo `nextPageToken`, similar al de otros métodos que devuelven resultados paginados como por ejemplo [`Courses.list`](https://developers.google.com/classroom/reference/rest/v1/courses/list) en el servicio avanzado / API de Classroom. No queda más remedio que invocarlo de manera iterativa hasta que el número de resultados obtenido sea inferior al valor máximo solicitado, parametrizado con `EMAYORDOMO.maxEmails`. ¿[Inconsistencias](https://twitter.com/pfelipm/status/1383837878686412809)? Bueno, alguna que otra, qué le vamos a hacer.
 
 ```javascript
       } else {    
@@ -797,7 +800,7 @@ El siguiente paso es recorrer todos los hilos en los que aparece la etiqueta que
 
 Como sabes, eMayordomo espera que los filtros de correo que etiquetan los mensajes recibidos queden marcados como destacados :star:. Por esa razón, lo primero que haremos en esta fase es descartar los hilos que no contengan mensajes destacados, a esos ya habremos respondido. 
 
-```
+```javascript
         // Recorramos ahora los mensajes de todos los hilos
         hilosEtiquetados.forEach(hilo => {
           
@@ -806,9 +809,9 @@ Como sabes, eMayordomo espera que los filtros de correo que etiquetan los mensaj
           if (hilo.hasStarredMessages()) {
 ```
 
-Seguidamente se recorren los mensajes del hilo, pero solo se tratará de responder a aquellos a los que realmente se les haya aplicado la etiqueta que se esta procesando en esta iteración. Esta comprobación adicional, que se realiza mediante la función auxiliar `etiquetasMensaje()`, constituye la solución, funcional pero no óptima, a la ambigüedad que nos está introduciendo el método `getThreads()` como consecuencia del problema descrito anteriormente.
+Seguidamente se recorren los mensajes del hilo, pero solo se tratará de responder a aquellos a los que realmente se les haya aplicado la etiqueta que se esta procesando en esta iteración. Esta comprobación adicional, que se realiza gracias a la función auxiliar `etiquetasMensaje()`, constituye la solución, funcional pero no óptima, a la ambigüedad que nos está introduciendo el método `getThreads()` como consecuencia del problema descrito anteriormente.
 
-```
+```javascript
             hilo.getMessages().forEach(mensaje => {
               
               // ¿Mensaje aún no procesado *y* etiquetado con etiqueta que estamos procesando?
@@ -822,9 +825,12 @@ Seguidamente se recorren los mensajes del hilo, pero solo se tratará de respond
 
 Si todas estas condiciones son satisfechas se pasa a determinar la dirección del correo electrónico a la que se debe responder. La estrategia es la siguiente:
 
-1.  Si la regla de auto respuesta dispone de una expresión regular para extraer el email del cuerpo del mensaje (columna D en la tabla)
+1.  Si la regla de auto respuesta definida en la hoja de cálculo dispone de una expresión regular para extraer el email del cuerpo del mensaje (columna `D` en la tabla) se aplica sobre él.
+2.  Si la cadena de texto devuelta por la aplicación de la expresión regular _parece_ una dirección de correo electrónico, se utiliza como email al que responder.
+3.  Si \[1\] o \[2\] no se cumplen, se utiliza el contenido del campo `Reply-To` del mensaje recibido.
+4.  En última instancia se utiliza el campo `From:` del mensaje recibido.
 
-```
+```javascript
                 const body = mensaje.getPlainBody();
                 let destinatario;
 
@@ -834,13 +840,99 @@ Si todas estas condiciones son satisfechas se pasa a determinar la dirección de
                 // ¿El email extraído tiene pinta de email?
                 const emailTest = /^\S+@\S+\.[a-z]{2,}$/;
 
-
                 // Si es que no, o no se ha usando una RegEx, utilizar responder-a (puede no haberlo) o remitente (en ese orden)
                 if (!regExEmail || !(emailTest.test(destinatario))) destinatario = mensaje.getReplyTo() ? mensaje.getReplyTo() : mensaje.getFrom();
+```
 
+Finalmente, solo resta duplicar el borrador (si lo enviáramos tal cual nos quedaríamos sin él). Para ello se llama a la función `extraerElementos()`, que devuelve un objeto que contiene:
 
-                // Extraer el cuerpo HTML, imágenes en línea y adjuntos del borrador correspondiente
-                const elementosMensaje = extraerElementos(borrador.mensaje);
+*   El cuerpo del mensaje, en formato HTML.
+*   Sus archivos adjuntos.
+*   Las imágenes incrustadas.
+
+De ese modo resulta posible utilizar a continuación el método [`MailApp.sendEmail()`](https://developers.google.com/apps-script/reference/mail/mail-app#sendEmail(String,String,String,Object)), pasándole en su objeto de [parámetros avanzados](https://developers.google.com/apps-script/reference/mail/mail-app#advanced-parameters_1) los elementos que se acaban de duplicar a partir del borrador. ¿Por qué `MailApp` en lugar de `GmailApp`? Pues porque [la segunda no admite emojis](https://twitter.com/pfelipm/status/1395116007623122947).
+
+```javascript
+               // Extraer el cuerpo HTML, imágenes en línea y adjuntos del borrador correspondiente
+                const elementosMensaje = extraerElementos(borrador.mensaje);
+
+                // Enviar mensaje y eliminar estrella si todo ha ido bien
+
+                try {
+                  // Usaremos MailApp dado que GmailApp no preserva emojis en asunto ni cuerpo:
+                  // https://stackoverflow.com/questions/50686254/how-to-insert-an-emoji-into-an-email-sent-with-gmailapp/50690214
+                  MailApp.sendEmail(destinatario, borrador.asuntoRegEx[2],
+                    'Debes usar un cliente de correo compatible con HTML para visualizar este mensaje.',
+                    {
+                      htmlBody: elementosMensaje.htmlBody,
+                      attachments: elementosMensaje.attachments,
+                      inlineImages: elementosMensaje.inlineImages,
+                      name: remitente
+                    });
+
+                  // El estado "destacado" no se refresca visualmente (sí internamente) si ha sido establecido *manualmente* >>  https://issuetracker.google.com/issues/77320923
+                  mensaje.unstar().markRead().refresh();
+
+                  operaciones.push(
+                    {
+                      estado: EMAYORDOMO.simboloOk,
+                      inicio: selloTiempo,
+                      tiempo: new Date(),
+                      etiqueta: etiqueta,
+                      email: destinatario,
+                      plantilla: plantilla,
+                      mensaje: `Autorespuesta enviada`
+                    });
+
+                } catch(e) {
+                  console.error(`Error al enviar respuesta ${plantilla} a ${remitente}.`);
+                  operaciones.push(
+                    {
+                      estado: EMAYORDOMO.simboloError,
+                      inicio: selloTiempo,
+                      tiempo: new Date(),
+                      etiqueta: etiqueta,
+                      email: destinatario,
+                      plantilla: plantilla,
+                      mensaje: `Error indeterminado al enviar email`
+                    });
+                }
+              }
+              
+              // Refresca hilo para que .hasStarredMessages() devuelva el valor correcto inmediatamente >> https://stackoverflow.com/a/65515913
+              hilo.refresh();  
+            }); // De envío de respuesta  
+            
+            hilo.moveToArchive().refresh();
+
+          } // De procesamiento de mensajes de cada hilo
+        }); // De procesamiento de hilos
+      } // De comprobación de existencia de plantilla
+    } // De existencia de etiqueta a procesar
+  }); // De proceso de la regla de cada etiqueta
+```
+
+Al mensaje atendido se marca como leído y se le retira la marca de destacado, de ese modo ya no volverá a procesarse en una próxima ejecución de la función y como siempre, se registra el resultado de la operación en el vector `operaciones`. Además, tras procesar todos los mensajes contenidos en un hilo dado este se archiva para quitarlo de enmedio.
+
+Finalmente, el registro completo de operaciones se traslada a la pestaña 🗒️ **Registro** de la hoja de cálculo de una vez, reduciendo de este modo las operaciones de escritura sobre ella, que son, temporalmente costosas, al máximo.
+
+```
+ // Escribe eventos en log (hdc) solo al finalizar completamentente la ejecución
+  if (operaciones.length == 0) {
+    operaciones.push(
+      {
+        estado: EMAYORDOMO.simboloInfo,
+        inicio: selloTiempo,
+        tiempo: new Date(),
+        etiqueta: '',
+        email: '',
+        plantilla: '',
+        mensaje: 'Sin actividad'
+      });
+  }
+  actualizarLog(operaciones);
+
+}
 ```
 
 ### etiquetasMensaje()
@@ -884,6 +976,8 @@ Mejor usar la API avanzada para recuperar mensajes, permite utilizar parámetros
 Duplicar mensajes es complicado
 
 Plantillas son borradores
+
+Estrellas que no desaparecen
 
 # Licencia
 
