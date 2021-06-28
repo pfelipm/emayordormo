@@ -967,6 +967,59 @@ function etiquetaMensaje(msg, etiqueta) {
 
 ### actualizarLog()
 
+Esta función auxiliar es llamada desde `procesarEmails()` para escribir los eventos registrados durante su ejecución en la tabla de 🗒️ **Registro** de la hoja de cálculo.
+
+```javascript
+/**
+ * Anota en la tabla de registro el resultado de una o varias operaciones
+ * en orden inverso (primero el más reciente)
+ * @params {Object[]} registros Vector de elementos a registrar:
+ *  { estado: >> símbolo de error
+ *    inicio: >> selleo de tiempo del lote de ejecución
+ *    tiempo: >> sello de tiempo del evento
+ *    etiqueta: >> etiqueta afectada
+ *    email: >> email afectado
+ *    plantilla: >> plantilla afectada
+ *    mensaje: >> mensaje a registrar }
+ */
+function actualizarLog(registros) {
+
+  if (registros.map) {
+    const tablaRegistros = registros.reverse().map(registro =>
+      [
+        registro.estado,
+        registro.inicio,
+        registro.tiempo,
+        registro.etiqueta,
+        registro.email,
+        registro.plantilla,
+        registro.mensaje
+      ]);
+    const hoja = SpreadsheetApp.getActive().getSheetByName(EMAYORDOMO.tablaLog.nombre);
+
+    // Inserta las filas necesarias en la parte superior de la tabla, se tiene en cuenta la situación inicial (filas vacías)
+    let filasNuevas;
+    if (hoja.getLastRow() < EMAYORDOMO.tablaLog.filInicialDatos) {
+      if (hoja.getMaxRows() - EMAYORDOMO.tablaLog.filInicialDatos + 1 - tablaRegistros.length >= 0) {
+        filasNuevas = 0;
+      } else {
+        filasNuevas = tablaRegistros.length - (hoja.getMaxRows() - EMAYORDOMO.tablaLog.filInicialDatos + 1);
+      }
+    } else {
+      filasNuevas = tablaRegistros.length;
+    }
+    if (filasNuevas) hoja.insertRowsBefore(EMAYORDOMO.tablaLog.filInicialDatos,filasNuevas);
+    hoja.getRange(EMAYORDOMO.tablaLog.filInicialDatos, 1, tablaRegistros.length, tablaRegistros[0].length).setValues(tablaRegistros);
+  };
+  
+}
+```
+
+Los valores más recientes aparecerán siempre en la parte superior de la hoja de cálculo. Este es un detalle insignificante pero que facilita comprobar la actividad reciente de eMayordomo, que aparece de inmediato al cargar la hoja de cálculo. Esto se consigue de dos maneras:
+
+*   Invirtiendo el vector de elementos a registrar antes de trasladarlo a la hoja de cálculo con  `registros.reverse()`.
+*   Insertado filas siempre a partir de la parte superior de la tabla.
+
 # Reflexiones finales
 
 eMayordomo ha sido un viaje de aprendizaje. Si tuviera que programarlo de nuevo seguramente tomaría otras decisiones de diseño.
