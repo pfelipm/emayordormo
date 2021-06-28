@@ -74,7 +74,7 @@ Por esa razón he optado por simplemente reducir la visibilidad de aquellas casi
 
 ![](https://user-images.githubusercontent.com/12829262/122236496-da821b80-cebe-11eb-9fd0-f93a0c36da07.png)
 
-He aplicado una nueva regla de formato condicional sobre las columnas `B` y `C` para destacar las celdas en las que falta información necesaria para definir completamente una regla de autorespuesta que cuando está activada (la expresión regular de extracción del email es un parámetro opcional). La fórmula utilizada en la regla de formato es `=Y($A2=VERDADERO;ESBLANCO(B2))`.
+He aplicado una nueva regla de formato condicional sobre las columnas `B` y `C` para destacar las celdas en las que falta información necesaria para definir completamente una regla de respuesta automática que esté marcada como activa. La expresión regular de extracción del email es un parámetro opcional, por tanto la columna D no se colorea. La fórmula utilizada en la regla de formato es `=Y($A2=VERDADERO;ESBLANCO(B2))`.
 
 ![](https://user-images.githubusercontent.com/12829262/122237277-7ca20380-cebf-11eb-906d-fa89ef974735.png)
 
@@ -704,9 +704,9 @@ Para extraer prefijo y asunto se emplea un [`match()`](https://developer.mozilla
   );
 ```
 
-El nombre que aparecerá como remitente en las respuestas enviadas se intenta extraer del propio nombre asignado a la hoja de cálculo. Se emplea para ello una expresión regular que intenta extraer una secuencia de texto, entre paréntesis y precedida de un espacio, en la parte final del nombre del archivo. Lo sé, esto es una rareza, pero en algún momento me debió parecer una buena idea.
+El nombre que aparecerá como remitente en las respuestas enviadas se intenta tomar del propio nombre asignado a la hoja de cálculo. Se emplea para ello una expresión regular que trata de extraer una secuencia de texto, entre paréntesis y precedida de un espacio, de la parte final del nombre del archivo. Lo sé, esto es una rareza, pero en algún momento me debió parecer una buena idea.
 
-```
+```javascript
   // Se intenta extraer el nombre del remitente de las respuestas a partir del nombre de la hoja de cálculo >> "texto (remitente)"
   let remitente = SpreadsheetApp.getActiveSpreadsheet().getName().match(/^.+\((.+)\)$/);
   if (remitente) {
@@ -717,48 +717,130 @@ El nombre que aparecerá como remitente en las respuestas enviadas se intenta ex
   }
 ```
 
-El bucle principal de la función recorre cada una de las etiquetas (únicas) vinculadas a una de las reglas de auto respuesta definidas en la hoja de cálculo por medio de una `forEach()`. La primera comprobación se asegura de que la regla asociada a la etiqueta sea válida. De no ser así, se registra el error en el vector `operaciones` y se pasa a analizar la siguiente etiqueta.
+El bucle principal de la función recorre totas las etiquetas (reglas de auto respuesta) que se han establecido en la hoja de cálculo por medio de un `forEach()`.
+
+Las primeras comprobaciones se aseguran de que la regla asociada a la etiqueta sea válida y de que exista un borrador en el buzón con un asunto cuyo prefijo sea coincidente con el especificado en la regla. De no ser así, se registra la naturaleza del error en el vector `operaciones` y se pasa a analizar la siguiente etiqueta.
+
+```javascript
+  // Procesar cada regla / etiqueta
+  etiquetasReglas.forEach(etiqueta => {
+
+    // ¿La etiqueta que vamos a procesar existe realmente en el buzón?
+
+    if (!etiquetasUsuario.includes(etiqueta)) {
+      console.error(`La etiqueta "${etiqueta}" no existe.`);
+      operaciones.push(
+        {
+          estado: EMAYORDOMO.simboloError,
+          inicio: selloTiempo,
+          tiempo: new Date(),
+          etiqueta: etiqueta,
+          email: '',
+          plantilla: '',
+          mensaje: `Etiqueta "${etiqueta}" no existe en el buzón`
+        });
+    } else {
+
+      // La etiqueta sí existe, seguimos...
+
+      const fila = tabla.find(regla => regla[colEtiqueta] == etiqueta);
+      const plantilla = fila[colPlantilla];
+      const regExEmail = fila[colRegExEmail]; // Opcional
+      
+      // ¿La plantilla (borrador) a utilizar existe? (¡cuidado con los duplicados!)
+      
+      const borrador = borradores.find(borrador => borrador.asuntoRegEx ? borrador.asuntoRegEx[1] == plantilla : null);
+      if (!borrador) {
+        console.error(`El borrador con prefijo "${plantilla} " no existe.`);
+        operaciones.push(
+          {
+            estado: EMAYORDOMO.simboloError,
+            inicio: selloTiempo,
+            tiempo: new Date(),
+            etiqueta: etiqueta,
+            email: '',
+            plantilla: plantilla,
+            mensaje: `Borrador no encontrado`
+          });
+```
+
+Ahora se obtienen los hilos de mensajes en el buzón que están marcados con la etiqueta. En ellos se encontrarán los mensajes a los que se debe responder.
+
+El método [`getThreads()`](https://developers.google.com/apps-script/reference/gmail/gmail-label#getThreads()) no dispone de un mecanismo de tipo `nextPageToken`, similar al de otros métodos que devuelven resultados paginados como por ejemplo [`Courses.list`](https://developers.google.com/classroom/reference/rest/v1/courses/list) en el servicio avanzado / API de Classroom. No queda más remedio que invocarlo de manera iterativa hasta que el número de resultados obtenido sea inferior al valor máximo solicitado, parametrizado mediante `EMAYORDOMO.maxEmails`. ¿[Inconsistencias](https://twitter.com/pfelipm/status/1383837878686412809)? Bueno, alguna que otra, qué le vamos a hacer.
+
+```javascript
+      } else {    
+
+        // Etiqueta, borrador y regla OK, intentemos responder a los mensajes 
+
+        // Extraer hilos con la etiqueta actual
+        let hilosEtiquetados = [];
+        let nHilo = 0;
+        let nHilos;
+        do {
+          // Devuelve 0 si no hay mensajes
+          const paginaHilos = GmailApp.getUserLabelByName(etiqueta).getThreads(nHilo, EMAYORDOMO.maxEmails);
+          nHilos = paginaHilos.length;
+          if (nHilos) {
+            hilosEtiquetados = [...hilosEtiquetados, ...paginaHilos];
+            nHilo += nHilos;
+          }
+        // Si se ha devuelto el nº máximo de mensajes solicitados haremos una nueva iteración, tal vez haya más
+        } while (nHilos == EMAYORDOMO.maxEmails);
+```
+
+:warning: Ojito con [esto](https://twitter.com/pfelipm/status/1399052196025712642): Lo habitual es que los buzones de Gmail tengan activada la [vista de conversación](https://support.google.com/mail/answer/5900), que agrupa los mensajes que identifica como relacionados. Aunque la interfaz de Gmail solo nos permita asignar etiquetas de usuario a hilos completos, realmente estas etiquetas sí pueden establecerse sobre mensajes individuales. El caso es que si dentro de un hilo hay mensajes con distintas etiquetas, este hilo será devuelto como resultado al invocar a `getThreads()` con cualquiera de ellas.
+
+¿Soluciones? Pues se me ocurren dos, la que he usado en el script y la correcta :wink: . Más adelante hablaremos de ambas.
+
+El siguiente paso es recorrer todos los hilos en los que aparece la etiqueta que estamos procesando.
+
+Como sabes, eMayordomo espera que los filtros de correo que etiquetan los mensajes recibidos queden marcados como destacados :star:. Por esa razón, lo primero que haremos en esta fase es descartar los hilos que no contengan mensajes destacados, a esos ya habremos respondido. 
 
 ```
-  // Procesar cada regla / etiqueta
-  etiquetasReglas.forEach(etiqueta => {
-
-    // ¿La etiqueta que vamos a procesar existe realmente en el buzón?
-
-    if (!etiquetasUsuario.includes(etiqueta)) {
-      console.error(`La etiqueta "${etiqueta}" no existe.`);
-      operaciones.push(
-        {
-          estado: EMAYORDOMO.simboloError,
-          inicio: selloTiempo,
-          tiempo: new Date(),
-          etiqueta: etiqueta,
-          email: '',
-          plantilla: '',
-          mensaje: `Etiqueta "${etiqueta}" no existe en el buzón`
-        });
+        // Recorramos ahora los mensajes de todos los hilos
+        hilosEtiquetados.forEach(hilo => {
+          
+          // ¿Hay mensajes con estrella (no procesados) en el hilo?
+          // Alternativa >> Usar fecha de última ejecución vs fecha mensaje (¿condiciones de carrera?)
+          if (hilo.hasStarredMessages()) {
 ```
 
-Seguidamente se verifica si existe un borrador en el buzón cuyo prefijo sea el indicado por la regla actual. En caso contrario se registra el error y se abandona el procesamiento de la etiqueta actual.
+Seguidamente se recorren los mensajes del hilo, pero solo se tratará de responder a aquellos a los que realmente se les haya aplicado la etiqueta que se esta procesando en esta iteración. Esta comprobación adicional, que se realiza mediante la función auxiliar `etiquetasMensaje()`, constituye la solución, funcional pero no óptima, a la ambigüedad que nos está introduciendo el método `getThreads()` como consecuencia del problema descrito anteriormente.
 
 ```
-      const fila = tabla.find(regla => regla[colEtiqueta] == etiqueta);
-      const plantilla = fila[colPlantilla];
-      const regExEmail = fila[colRegExEmail]; // Opcional
-      // ¿La plantilla (borrador) a utilizar existe? (¡cuidado con los duplicados!)
-      const borrador = borradores.find(borrador => borrador.asuntoRegEx ? borrador.asuntoRegEx[1] == plantilla : null);
-      if (!borrador) {
-        console.error(`El borrador con prefijo "${plantilla} " no existe.`);
-        operaciones.push(
-          {
-            estado: EMAYORDOMO.simboloError,
-            inicio: selloTiempo,
-            tiempo: new Date(),
-            etiqueta: etiqueta,
-            email: '',
-            plantilla: plantilla,
-            mensaje: `Borrador no encontrado`
-          });
+            hilo.getMessages().forEach(mensaje => {
+              
+              // ¿Mensaje aún no procesado *y* etiquetado con etiqueta que estamos procesando?
+              // Si está activada la vista de conversación en Gmail es posible que el hilo
+              // contenga mensajes con distintas etiquetas. Al usar GmailLabel.getThreads()
+              // se devolverán todos siempre, por lo que es necesaria esta comprobación adicional,
+              // que utiliza el servicio avanzado de Gmail para enumerar las etiquetas propias
+              // de un mensaje dado.
+              if (mensaje.isStarred() && etiquetasMensaje(mensaje, etiqueta)) {
+```
+
+Si todas estas condiciones son satisfechas se pasa a determinar la dirección del correo electrónico a la que se debe responder. La estrategia es la siguiente:
+
+1.  Si la regla de auto respuesta dispone de una expresión regular para extraer el email del cuerpo del mensaje (columna D en la tabla)
+
+```
+                const body = mensaje.getPlainBody();
+                let destinatario;
+
+                // Destinatario: 1º RegEx, 2º Responder a, 3º Remitente
+                if (regExEmail) destinatario = body.match(new RegExp(regExEmail))[1];
+                  
+                // ¿El email extraído tiene pinta de email?
+                const emailTest = /^\S+@\S+\.[a-z]{2,}$/;
+
+
+                // Si es que no, o no se ha usando una RegEx, utilizar responder-a (puede no haberlo) o remitente (en ese orden)
+                if (!regExEmail || !(emailTest.test(destinatario))) destinatario = mensaje.getReplyTo() ? mensaje.getReplyTo() : mensaje.getFrom();
+
+
+                // Extraer el cuerpo HTML, imágenes en línea y adjuntos del borrador correspondiente
+                const elementosMensaje = extraerElementos(borrador.mensaje);
 ```
 
 ### etiquetasMensaje()
@@ -773,12 +855,11 @@ Es una sencilla función auxiliar que devuelve `TRUE` si el mensaje que se pasa 
  * @param {string} etiqueta
  * @returns {Boolean}
  */
-function etiquetasMensaje(msg, etiqueta) {
+function etiquetaMensaje(msg, etiqueta) {
 
   const id = msg.getId();
   const idEtiqueta = Gmail.Users.Labels.list('me').labels.find(e => e.name == etiqueta).id;
   etiquetas = Gmail.Users.Messages.get('me', id).labelIds;
-  console.info(etiquetas)
 
   if (etiquetas.map) {
     return etiquetas.includes(idEtiqueta);
@@ -793,6 +874,16 @@ function etiquetasMensaje(msg, etiqueta) {
 ### duplicarBorradorAPI() y extraerElementos()
 
 ### actualizarLog()
+
+# Reflexiones finales
+
+eMayordomo ha sido un viaje de aprendizaje. Si tuviera que programarlo de nuevo seguramente tomaría otras decisiones de diseño.
+
+Mejor usar la API avanzada para recuperar mensajes, permite utilizar parámetros de búsqueda
+
+Duplicar mensajes es complicado
+
+Plantillas son borradores
 
 # Licencia
 
