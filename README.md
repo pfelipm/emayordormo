@@ -12,6 +12,12 @@
     *   [acercaDe.html](#acercadehtml)
     *   [Activador.gs](#activadorgs)
     *   [Código.gs](#c%C3%B3digogs)
+        *   [onOpen()](#onopen)
+        *   [construirMenu()](#construirmenu)
+        *   [acercaDe()](#acercade)
+        *   [procesarEmails()](3procesarEmails)
+        *   [etiquetasMensaje](#etiquetasMensaje)
+        *   [duplicarBorradorAPI()](#duplicarborradorapi-y-extraerelementos)
 *   [Mejoras y reflexiones finales](#mejoras-y-reflexiones)
 *   [Licencia](#licencia)
 
@@ -1056,7 +1062,7 @@ function extraerElementos(msg) {
   // built an inlineImagesObj from inline image matches
   // match[1] = cid, match[2] = alt
   matches.forEach(match => inlineImagesObj[match[1]] = img_obj[match[2]]);
-  
+
   return {
     htmlBody: htmlBody,
     attachments: attachments,
