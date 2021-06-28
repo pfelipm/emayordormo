@@ -12,7 +12,7 @@
     *   [acercaDe.html](#acercadehtml)
     *   [Activador.gs](#activadorgs)
     *   [Código.gs](#c%C3%B3digogs)
-
+*   [Mejoras y reflexiones finales](#mejoras-y-reflexiones)
 *   [Licencia](#licencia)
 
 # ¿Qué es eMayordormo?
@@ -964,6 +964,110 @@ function etiquetaMensaje(msg, etiqueta) {
 
 ### duplicarBorradorAPI() y extraerElementos()
 
+El nudo gordiano del desarrollo de eMayordomo ha sido sin duda cómo confeccionar y enviar correos electrónicos a partir de borradores.
+
+Mi estrategia inicial se basaba en \[1\] duplicar un borrador dado para a continuación \[2\] modificar el asunto (recuerda que necesitamos eliminar el prefijo que se usa como elemento selector en las reglas de respuesta automática) y enviar la copia al destinatario que correspondiera.
+
+Lo primero se puede resolver con estas líneas de código, correspondientes a  `duplicarBorradorAPI()`, que usan de manera directa la [API de Gmail](https://developers.google.com/gmail/api), concretamente su método [users.drafts.create](https://developers.google.com/gmail/api/reference/rest/v1/users.drafts/create). El truco está en emplear el URI de subida de archivos para conseguir una réplica perfecta de imágenes incrustadas y adjuntos, a partir del contenido crudo del borrador original, leído con [`GmailMessage.getRawContent()`](https://developers.google.com/apps-script/reference/gmail/gmail-message#getRawContent()).
+
+```javascript
+/**
+ * /// NO UTILIZADO ///
+ * Crea un duplicado del borrador cuyo id se pasa como parámetro,
+ * incluyendo cuerpo html, imágenes en línea y adjuntos.
+ * 
+ * Usa la API avanzada de Gmail vía REST
+ * Problema: posteriormente no consigo modificar las cabeceras
+ * para establecer ASUNTO o DESTINATARIO ¿vía muerta?
+ * 
+ * @param   {string}        idBorrador
+ * @returns {null | Object} Nuevo borrador o null, si no ha sido posible crearlo
+ *   {
+ *      "id": string,
+ *      "message": {
+ *        "id": ID_MENSAJE
+ *        "threadId": ID_HILO
+ *        "labelIds": ['ETIQUETA']
+ *       }
+ *   }
+ */
+function duplicarBorradorAPI(idBorrador) {
+
+  let nuevoBorrador;
+  try {
+
+      const borrador = GmailApp.getMessageById(idBorrador);
+      const endPoint = 'https://www.googleapis.com/upload/gmail/v1/users/me/drafts?uploadType=media';
+      const parametros = {
+        method: 'POST',
+        contentType: 'message/rfc822',
+        muteHttpExceptions: true,
+        headers: {'Authorization': `Bearer ${ScriptApp.getOAuthToken()}`},
+        payload: borrador.getRawContent()
+      };
+      nuevoBorrador = UrlFetchApp.fetch(endPoint, parametros);
+    
+    } catch(e) {
+      return null;
+    }
+
+  return nuevoBorrador.getResponseCode() == 200 ? JSON.parse(nuevoBorrador.getContentText()) : null;
+
+}
+```
+
+Pero lo segundo ya no ha estado tan claro. [No hallé el modo](https://twitter.com/pfelipm/status/1394808527156400128) de actualizar satisfactoriamente las cabeceras de la copia del borrador sin incluir en el cuerpo de la petición dirigida al método [users.drafts.update](https://developers.google.com/gmail/api/reference/rest/v1/users.drafts/update) la secuencia modificada de bytes del email en crudo, codificada como una cadena de texto en formato [RFC 2822](https://datatracker.ietf.org/doc/html/rfc2822) y con una codificación [Base64 apta para URL](https://base64.guru/standards/base64url). Un follón en el que no me apetecía nada meterme.
+
+![](https://user-images.githubusercontent.com/12829262/123703247-6d7a6880-d864-11eb-8d16-5120bf864d9a.png)
+
+Afortunadamente (casi) todos los caminos ya están andados y Martin Hakwsey [ya había propuesto](https://twitter.com/pfelipm/status/1384513431005548551) recientemente una estrategia alternativa para resolver este problema, un tanto más complicada pero perfectamente operativa (_thanks for pointing me in the right direction, Martin_).  Así que con su permiso, me la traje a la función `extraerElementos()`.
+
+```javascript
+/**
+ * Crea un duplicado del cuerpo html, imágenes en línea y adjuntos del mensaje
+ * cuyo id se pasa como parámetro.
+ * 
+ * Usa el servicio estándar de Gmail para reconstruir en nuevo mensaje
+ * el contenido del original, incluyendo imágenes en línea (reemparejando CIDs)
+ * y archivos adjuntos.
+ *  
+ * @param   {GmailMessage}  msg
+ * @returns {Object}        {htmlBody, {attachments}, {inLineImages}}, si no ha sido posible crearlo
+ * 
+ * Tomado de:
+ * https://hawksey.info/blog/2021/02/everything-you-ever-wanted-to-know-about-gmail-draft-inline-images-and-google-apps-script-but-were-afraid-to-ask/
+ */
+function extraerElementos(msg) {
+
+  const allInlineImages = msg.getAttachments({includeInlineImages: true, includeAttachments: false});
+  const attachments = msg.getAttachments({includeInlineImages: false});
+  const htmlBody = msg.getBody(); 
+
+  // Create an inline image object with the image name as key 
+  // (can't rely on image index as array built based on insert order)
+  const img_obj = allInlineImages.reduce((obj, i) => (obj[i.getName()] = i, obj) ,{});
+
+  // Regex to search for all img string positions with cid and alt
+  const imgexp = RegExp('<img.*?src="cid:(.*?)".*?alt="(.*?)"[^\>]+>', 'g');
+  const matches = [...htmlBody.matchAll(imgexp)];
+
+  // Initiate the allInlineImages object
+  const inlineImagesObj = {};
+  // built an inlineImagesObj from inline image matches
+  // match[1] = cid, match[2] = alt
+  matches.forEach(match => inlineImagesObj[match[1]] = img_obj[match[2]]);
+  
+  return {
+    htmlBody: htmlBody,
+    attachments: attachments,
+    inlineImages: inlineImagesObj
+  };
+
+}
+```
+
+Su funcionamiento está perfectamente explicado [aquí](https://hawksey.info/blog/2021/02/everything-you-ever-wanted-to-know-about-gmail-draft-inline-images-and-google-apps-script-but-were-afraid-to-ask/), así que no voy a añadir nada más.
+
 ### actualizarLog()
 
 Esta función auxiliar es llamada desde `procesarEmails()` para escribir los eventos registrados durante su ejecución en la tabla de 🗒️ **Registro** de la hoja de cálculo.
@@ -1016,8 +1120,8 @@ function actualizarLog(registros) {
 
 Los valores más recientes aparecerán siempre en la parte superior de la hoja de cálculo. Este es un detalle insignificante pero que facilita comprobar la actividad reciente de eMayordomo, que aparece de inmediato al cargar la hoja de cálculo. Esto se consigue de dos maneras:
 
-*   Invirtiendo el vector de elementos a registrar antes de trasladarlo a la hoja de cálculo con  `registros.reverse()`.
-*   Insertado filas siempre a partir de la parte superior de la tabla.
+*   Invirtiendo el vector donde se van anotando los eventos durante la ejecución de `procesarEmails()` antes de trasladarlo a la hoja de cálculo. Esto se hace con  el método [Array.reverse()](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Global_Objects/Array/reverse).
+*   Insertado las filas necesarias en parte superior de la tabla para dar cabida a los nuevos eventos a registrar.
 
 # Mejoras y reflexiones
 
