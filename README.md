@@ -819,7 +819,7 @@ Como sabes, eMayordomo espera que los filtros de correo que etiquetan los mensaj
           if (hilo.hasStarredMessages()) {
 ```
 
-Seguidamente se recorren los mensajes del hilo, pero solo se tratará de responder a aquellos a los que realmente se les haya aplicado la etiqueta que se esta procesando en esta iteración. Esta comprobación adicional, que se realiza gracias a la función auxiliar `etiquetasMensaje()`, constituye la solución, funcional pero no óptima, a la ambigüedad que nos está introduciendo el método `getThreads()` como consecuencia del problema descrito anteriormente.
+Seguidamente se revisan todos y cada uno de los mensajes del hilo, pero solo se tratará de responder a aquellos a los que realmente se les haya aplicado la etiqueta que se esta procesando en esta iteración. Esta comprobación adicional, que se realiza gracias a la función auxiliar `etiquetasMensaje()`, constituye la solución funcional (que no óptima), a la ambigüedad que nos está introduciendo el método `getThreads()` como consecuencia del problema descrito anteriormente.
 
 ```javascript
             hilo.getMessages().forEach(mensaje => {
@@ -1031,7 +1031,9 @@ Pero lo segundo ya no ha estado tan claro. [No hallé el modo](https://twitter.c
 
 ![](https://user-images.githubusercontent.com/12829262/123703247-6d7a6880-d864-11eb-8d16-5120bf864d9a.png)
 
-Afortunadamente (casi) todos los caminos ya están andados y Martin Hakwsey [ya había propuesto](https://twitter.com/pfelipm/status/1384513431005548551) recientemente una estrategia alternativa para resolver este problema, un tanto más complicada pero perfectamente operativa (_thanks for pointing me in the right direction, Martin_).  Así que con su permiso, me la traje a la función `extraerElementos()`.
+Afortunadamente (casi) todos los caminos parecen estar andados. Martin Hakwsey [ya había propuesto](https://twitter.com/pfelipm/status/1384513431005548551) recientemente una estrategia alternativa para resolver este problema, un tanto más complicada pero que resuelve el problema estupendamente (_thanks for pointing me in the right direction, Martin_).  
+
+Así que con su permiso, me la traje a la función `extraerElementos()`.
 
 ```javascript
 /**
@@ -1077,7 +1079,7 @@ function extraerElementos(msg) {
 }
 ```
 
-Su funcionamiento está perfectamente explicado [aquí](https://hawksey.info/blog/2021/02/everything-you-ever-wanted-to-know-about-gmail-draft-inline-images-and-google-apps-script-but-were-afraid-to-ask/), así que no voy a añadir nada más.
+Su funcionamiento está perfectamente descrito [aquí](https://hawksey.info/blog/2021/02/everything-you-ever-wanted-to-know-about-gmail-draft-inline-images-and-google-apps-script-but-were-afraid-to-ask/), así que no añadiré nada más.
 
 ### actualizarLog()
 
@@ -1134,17 +1136,25 @@ Los valores más recientes aparecerán siempre en la parte superior de la hoja d
 *   Invirtiendo el vector donde se van anotando los eventos durante la ejecución de `procesarEmails()` antes de trasladarlo a la hoja de cálculo. Esto se hace con  el método [Array.reverse()](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Global_Objects/Array/reverse).
 *   Insertado las filas necesarias en parte superior de la tabla para dar cabida a los nuevos eventos a registrar.
 
-# Mejoras y reflexiones
+# Mejoras y reflexiones finales
 
-eMayordomo ha sido un viaje de aprendizaje. Si tuviera que programarlo de nuevo seguramente tomaría otras decisiones de diseño.
+eMayordomo ha sido en gran medida un viaje de aprendizaje. Como todos los viajes que merecen la pena. El código de este repositorio no pretende ser por tanto un ejemplo de buenas prácticas, solo un reflejo del trabajo realizado y del camino recorrido.
 
-Mejor usar la API avanzada para recuperar mensajes, permite utilizar parámetros de búsqueda
+Si tuviera que comenzarlo ahora desde cero, con todo lo aprendido, seguramente adoptaría decisiones de diseño distintas.
 
-Duplicar mensajes es complicado
+Y la primera sería dejar de utilizar el servicio estándar de Gmail para localizar los mensajes a los que se debe responder. En lugar de usar [`GmailLabel.getThreads()`](https://developers.google.com/apps-script/reference/gmail/gmail-label#getThreads()) para luego tener que determinar si cada uno de los hilos contiene mensajes destacados y, por si fuera poco, realizar una validación final sobre cada mensaje para comprobar si realmente ha sido marcado con la etiqueta perseguida, resulta mucho más práctico tirar del servicio avanzado / API de Gmail y de su método [users.messages.list](https://developers.google.com/gmail/api/reference/rest/v1/users.messages/list). Su parámetro `q` admite una cadena de búsqueda con la que es pan comido obtener los mensajes que hay que procesar en un solo paso. Por ejemplo:
 
-Plantillas son borradores
+```
+label:at-general is:starred 
+```
 
-Estrellas que no desaparecen
+Además, esta estrategia resultará probablemente más eficiente que la empleada ahora mismo por eMayordomo, dado que son las tripas de la propia API de Gmail las que se encargan de todo.
+
+Por otro lado, le he prestado más bien poca atención a los [permisos que solicita el script](https://developers.google.com/apps-script/concepts/scopes) (_authorization scopes_), limitándome a aceptar los habitualmente permisivos en exceso que determina el editor Apps Script mientras se va escribiendo el código. Si en algún momento tuviera que salir de eMayordomo un desarrollo más elaborado, o tal vez un complemento publicado en la tienda de aplicaciones, habría que darle una vuelta a esto.
+
+No puedo dejar de comentar lo cruda que me ha parecido la API de Gmail. Y lo digo fundamentalmente por lo complicado que resulta hacer algo tan aparentemente prosaico como generar un nuevo email a partir de un borrador, cuando aquel contiene imágenes incrustadas. Las cosas deberían ser más simples, especialmente en una plataforma como Google Apps Script, que está muy dirigida a esa llamado _ciudadano desarrollador_.
+
+Pero es que también nos encontramos con carencias, como la falta de clases para manipular las plantillas de Gmail (plantillas que, por cierto, se [enumeran como borradores](https://twitter.com/pfelipm/status/1394752800777773057)), o algún que otro molesto [bug](https://issuetracker.google.com/issues/77320923) como el que afecta al refresco visual de las estrellas de los mensajes destacados, cuando estas se han activado manualmente.
 
 # Licencia
 
