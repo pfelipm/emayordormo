@@ -720,7 +720,7 @@ El nombre que aparecerá como remitente en las respuestas enviadas se intenta ex
 El bucle principal de la función recorre cada una de las etiquetas (únicas) vinculadas a una de las reglas de auto respuesta definidas en la hoja de cálculo por medio de una `forEach()`. La primera comprobación se asegura de que la regla asociada a la etiqueta sea válida. De no ser así, se registra el error en el vector `operaciones` y se pasa a analizar la siguiente etiqueta.
 
 ```
-  // Procesar cada etiqueta
+  // Procesar cada regla / etiqueta
   etiquetasReglas.forEach(etiqueta => {
 
     // ¿La etiqueta que vamos a procesar existe realmente en el buzón?
@@ -737,10 +737,29 @@ El bucle principal de la función recorre cada una de las etiquetas (únicas) vi
           plantilla: '',
           mensaje: `Etiqueta "${etiqueta}" no existe en el buzón`
         });
-    }
 ```
 
-Seguidamente se verifica 
+Seguidamente se verifica si existe un borrador en el buzón cuyo prefijo sea el indicado por la regla actual. En caso contrario se registra el error y se abandona el procesamiento de la etiqueta actual.
+
+```
+      const fila = tabla.find(regla => regla[colEtiqueta] == etiqueta);
+      const plantilla = fila[colPlantilla];
+      const regExEmail = fila[colRegExEmail]; // Opcional
+      // ¿La plantilla (borrador) a utilizar existe? (¡cuidado con los duplicados!)
+      const borrador = borradores.find(borrador => borrador.asuntoRegEx ? borrador.asuntoRegEx[1] == plantilla : null);
+      if (!borrador) {
+        console.error(`El borrador con prefijo "${plantilla} " no existe.`);
+        operaciones.push(
+          {
+            estado: EMAYORDOMO.simboloError,
+            inicio: selloTiempo,
+            tiempo: new Date(),
+            etiqueta: etiqueta,
+            email: '',
+            plantilla: plantilla,
+            mensaje: `Borrador no encontrado`
+          });
+```
 
 ### etiquetasMensaje()
 
