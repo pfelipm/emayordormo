@@ -168,7 +168,7 @@ La pequeña imagen en la cabecera del cuadro de diálogo se ha insertado usando 
 
 ## Activador.gs
 
-El modo de funcionamiento natural de eMayordomo es en 2º plano, gracias a un [activador por tiempo instalable](https://developers.google.com/apps-script/guides/triggers/installable), instanciado mediante la clase [`ClockTriggerBuilder`](https://developers.google.com/apps-script/reference/script/clock-trigger-builder),  que es inicializado por el usuario con el comando del menú del script `⏰ Procesar etiquetas cada hora`.
+El modo de funcionamiento natural de eMayordomo es en 2º plano, gracias a un [activador por tiempo instalable](https://developers.google.com/apps-script/guides/triggers/installable), instanciado mediante la clase [`ClockTriggerBuilder`](https://developers.google.com/apps-script/reference/script/clock-trigger-builder),  que es inicializado por el usuario con el comando  `⏰ Procesar etiquetas cada hora` del menú del script.
 
 ![](https://user-images.githubusercontent.com/12829262/123541712-2b5b0500-d746-11eb-91f9-f7a00851e22c.png)
 
@@ -551,7 +551,7 @@ Esta función es invocada por el comando `💡 Acerca de eMayordomo` y se util
 
 eMayordomo también admite la ejecución manual del proceso de atención a los mensajes recibidos en el buzón de Gmail. Esto puede resultar de utilidad para procesar correos electrónicos a los que no se ha respondido como consecuencia de algún error temporal.
 
-Esta función puede invocarse el comando `🔁 Ejecutar manualmente`.
+Esta función puede invocarse con el comando `🔁 Ejecutar manualmente`.
 
 ![](https://user-images.githubusercontent.com/12829262/123556666-c1b21980-d78c-11eb-9a60-05900701e74f.png)
 
@@ -898,11 +898,11 @@ De ese modo resulta posible utilizar a continuación el método [`MailApp.sendEm
                     });
                 }
               }
-              
+
               // Refresca hilo para que .hasStarredMessages() devuelva el valor correcto inmediatamente >> https://stackoverflow.com/a/65515913
               hilo.refresh();  
             }); // De envío de respuesta  
-            
+
             hilo.moveToArchive().refresh();
 
           } // De procesamiento de mensajes de cada hilo
