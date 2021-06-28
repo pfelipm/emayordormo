@@ -23,7 +23,7 @@
         *   [procesarEmails()](3procesarEmails)
         *   [etiquetasMensaje](#etiquetasMensaje)
         *   [duplicarBorradorAPI()](#duplicarborradorapi-y-extraerelementos)
-*   [Mejoras y reflexiones finales](#mejoras-y-reflexiones)
+*   [Mejoras y reflexiones finales](#mejoras-y-reflexiones-finales)
 *   [Licencia](#licencia)
 
 # ¿Qué es eMayordormo?
