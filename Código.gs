@@ -139,8 +139,12 @@ function ejecutarManualmente() {
   }
 
 }
-
-
+/**
+ * Revisa el buzón de Gmail del usuario que lo ejecuta y responde a los mensajes
+ * con respuestas preparadas de acuerdo a las reglas de procesamiento definidas
+ * en el hojaEMAYORDOMO.tablaReglas.nombre.
+ * Los mensajes a los que se ha respondido quedan marcados como leídos y no destacados.
+ */
 function procesarEmails() {
 
   // Sello de tiempo de este lote
@@ -183,17 +187,14 @@ function procesarEmails() {
   if (remitente) {
     remitente = remitente[1];
   } else {
-    // ...en caso contrario, nombre usuario (valor por defecto al enviar emails con GmailApp si no se especifica 'name')
+    // ...en caso contrario, nombre usuario (valor por defecto al enviar emails con GmailApp/MailApp si no se especifica 'name')
     remitente = Session.getEffectiveUser().getEmail().match(/^(.+)@.+$/)[1];
   }
 
-  // console.info(`Etiquetas a procesar: ${etiquetasReglas}`);
-  // console.info(`Borradores encontrados: ${borradores.length}`);
-
-  // Procesar cada etiqueta
+  // Procesar cada regla / etiqueta
   etiquetasReglas.forEach(etiqueta => {
 
-    // ¿La etiqueta que vamos a procesar existe realmente?
+    // ¿La etiqueta que vamos a procesar existe realmente en el buzón?
 
     if (!etiquetasUsuario.includes(etiqueta)) {
       console.error(`La etiqueta "${etiqueta}" no existe.`);
@@ -212,9 +213,14 @@ function procesarEmails() {
       // La etiqueta sí existe, seguimos...
 
       const fila = tabla.find(regla => regla[colEtiqueta] == etiqueta);
-
-      if (!fila) {
-        console.error(`No se encuentra regla para "${etiqueta}".`);
+      const plantilla = fila[colPlantilla];
+      const regExEmail = fila[colRegExEmail]; // Opcional
+      
+      // ¿La plantilla (borrador) a utilizar existe? (¡cuidado con los duplicados!)
+      
+      const borrador = borradores.find(borrador => borrador.asuntoRegEx ? borrador.asuntoRegEx[1] == plantilla : null);
+      if (!borrador) {
+        console.error(`El borrador con prefijo "${plantilla} " no existe.`);
         operaciones.push(
           {
             estado: EMAYORDOMO.simboloError,
@@ -222,141 +228,117 @@ function procesarEmails() {
             tiempo: new Date(),
             etiqueta: etiqueta,
             email: '',
-            plantilla: '',
-            mensaje: `No se encuentra regla para "${etiqueta}".`
+            plantilla: plantilla,
+            mensaje: `Borrador no encontrado`
           });
-      } else {
-        
-        // La regla existe, seguimos...
+      } else {    
 
-        const plantilla = fila[colPlantilla];
-        const regExEmail = fila[colRegExEmail]; // Opcional
-        console.info(`Etiqueta: ${fila[colEtiqueta]} · Plantilla: "${plantilla} " · RegEx email: ${regExEmail}`)
+        // Etiqueta, borrador y regla OK, intentemos responder a los mensajes 
 
-        // ¿La plantilla (borrador) a utilizar existe? (¡cuidado con los duplicados!)
-        
-        const borrador = borradores.find(borrador => borrador.asuntoRegEx ? borrador.asuntoRegEx[1] == plantilla : null);
-        if (!borrador) {
-          console.error(`El borrador con prefijo "${plantilla} " no existe.`);
-          operaciones.push(
-            {
-              estado: EMAYORDOMO.simboloError,
-              inicio: selloTiempo,
-              tiempo: new Date(),
-              etiqueta: etiqueta,
-              email: '',
-              plantilla: plantilla,
-              mensaje: `Borrador no encontrado`
-            });
-        } else {    
+        // Extraer hilos con la etiqueta actual
+        let hilosEtiquetados = [];
+        let nHilo = 0;
+        let nHilos;
+        do {
+          // Devuelve 0 si no hay mensajes
+          const paginaHilos = GmailApp.getUserLabelByName(etiqueta).getThreads(nHilo, EMAYORDOMO.maxEmails);
+          nHilos = paginaHilos.length;
+          if (nHilos) {
+            hilosEtiquetados = [...hilosEtiquetados, ...paginaHilos];
+            nHilo += nHilos;
+          }
+        // Si se han devuelto el nº máximo de mensajes solicitados haremos una nueva iteración, tal vez haya más
+        } while (nHilos == EMAYORDOMO.maxEmails);
 
-          // Etiqueta, borrador y regla OK, intentemos responder a los mensajes 
+        console.info(`Procesando etiqueta "${etiqueta}", hilos: ${hilosEtiquetados.length}.`);
 
-          // Extraer hilos con la etiqueta actual
-          let hilosEtiquetados = [];
-          let nHilo = 0;
-          let nHilos;
-          do {
-            // Devuelve 0 si no hay mensajes
-            const paginaHilos = GmailApp.getUserLabelByName(etiqueta).getThreads(nHilo, EMAYORDOMO.maxEmails);
-            nHilos = paginaHilos.length;
-            if (nHilos) {
-              hilosEtiquetados = [...hilosEtiquetados, ...paginaHilos];
-              nHilo += nHilos;
-            }
-          // Si se han devuelto el nº máximo de mensajes solicitados haremos una nueva iteración, tal vez haya más
-          } while (nHilos == EMAYORDOMO.maxEmails);
+        // Recorramos ahora los mensajes de todos los hilos
+        hilosEtiquetados.forEach(hilo => {
+          
+          // ¿Hay mensajes con estrella (no procesados) en el hilo?
+          // Alternativa >> Usar fecha de última ejecución vs fecha mensaje (¿condiciones de carrera?)
+          if (hilo.hasStarredMessages()) {
 
-          console.info(`Procesando etiqueta "${etiqueta}", hilos: ${hilosEtiquetados.length}.`);
-
-          // Recorramos ahora los mensajes de todos los hilos
-          hilosEtiquetados.forEach(hilo => {
-            
-            // ¿Hay mensajes con estrella (no procesados) en el hilo?
-            // Alternativa >> Usar fecha de última ejecución vs fecha mensaje (¿condiciones de carrera?)
-            if (hilo.hasStarredMessages()) {
-
-              hilo.getMessages().forEach(mensaje => {
-                
-                // ¿Mensaje aún no procesado *y* etiquetado con etiqueta que estamos procesando?
-                // Si está activada la vista de conversación en Gmail es posible que el hilo
-                // contenga mensajes con distintas etiquetas. Al usar GmailLabel.getThreads()
-                // se devolverán todos siempre, por lo que es necesaria esta comprobación adicional,
-                // que utiliza el servicio avanzado de Gmail para enumerar las etiquetas propias
-                // de un mensaje dado.
-                if (mensaje.isStarred() && etiquetasMensaje(mensaje, etiqueta)) {
-                
-                  const body = mensaje.getPlainBody();
-                  let destinatario;
-
-                  // Destinatario: 1º RegEx, 2º Responder a, 3º Remitente
-                  if (regExEmail) destinatario = body.match(new RegExp(regExEmail))[1];
-                   
-                  // ¿El email extraído tiene pinta de email?
-                  const emailTest = /^\S+@\S+\.[a-z]{2,}$/;
-
-                  // Si es que no, o no se ha usando una RegEx, utilizar responder-a (puede no haberlo) o remitente (en ese orden)
-                  if (!regExEmail || !(emailTest.test(destinatario))) destinatario = mensaje.getReplyTo() ? mensaje.getReplyTo() : mensaje.getFrom();
-
-                  // Extraer el cuerpo HTML, imágenes en línea y adjuntos del borrador correspondiente
-                  const elementosMensaje = extraerElementos(borrador.mensaje);
-
-                  // Enviar mensaje y eliminar estrella si todo ha ido bien
-
-                  try {
-
-                    console.info(`Enviando respuesta ${plantilla} a ${remitente}`);
-
-                    // Usaremos MailApp dado que GmailApp no preserva emojis en asunto ni cuerpo:
-                    // https://stackoverflow.com/questions/50686254/how-to-insert-an-emoji-into-an-email-sent-with-gmailapp/50690214
-                    MailApp.sendEmail(destinatario, borrador.asuntoRegEx[2],
-                      'Debes usar un cliente de correo compatible con HTML para visualizar este mensaje.',
-                      {
-                        htmlBody: elementosMensaje.htmlBody,
-                        attachments: elementosMensaje.attachments,
-                        inlineImages: elementosMensaje.inlineImages,
-                        name: remitente
-                      });
-
-                    // El estado "destacado" no se refresca visualmente (sí internamente) sí ha sido establecido *manualmente* >>  https://issuetracker.google.com/issues/77320923
-                    mensaje.unstar().markRead().refresh();
-
-                    operaciones.push(
-                      {
-                        estado: EMAYORDOMO.simboloOk,
-                        inicio: selloTiempo,
-                        tiempo: new Date(),
-                        etiqueta: etiqueta,
-                        email: destinatario,
-                        plantilla: plantilla,
-                        mensaje: `Autorespuesta enviada`
-                      });
-
-                  } catch(e) {
-                    console.error(`Error al enviar respuesta ${plantilla} a ${remitente}.`);
-                    operaciones.push(
-                      {
-                        estado: EMAYORDOMO.simboloError,
-                        inicio: selloTiempo,
-                        tiempo: new Date(),
-                        etiqueta: etiqueta,
-                        email: destinatario,
-                        plantilla: plantilla,
-                        mensaje: `Error indeterminado al enviar email`
-                      });
-                  }
-                }
-                
-                // Refresca hilo para que .hasStarredMessages() devuelva el valor correcto inmediatamente >> https://stackoverflow.com/a/65515913
-                hilo.refresh();  
-              }); // De envío de respuesta  
+            hilo.getMessages().forEach(mensaje => {
               
-              hilo.moveToArchive().refresh();
+              // ¿Mensaje aún no procesado *y* etiquetado con etiqueta que estamos procesando?
+              // Si está activada la vista de conversación en Gmail es posible que el hilo
+              // contenga mensajes con distintas etiquetas. Al usar GmailLabel.getThreads()
+              // se devolverán todos siempre, por lo que es necesaria esta comprobación adicional,
+              // que utiliza el servicio avanzado de Gmail para enumerar las etiquetas propias
+              // de un mensaje dado.
+              if (mensaje.isStarred() && etiquetasMensaje(mensaje, etiqueta)) {
+              
+                const body = mensaje.getPlainBody();
+                let destinatario;
 
-            } // De procesamiento de mensajes de cada hilo
-          }); // De procesamiento de hilos
-        } // De comprobación de existencia de plantilla
-      } // De comprobación de existencia de regla
+                // Destinatario: 1º RegEx, 2º Responder a, 3º Remitente
+                if (regExEmail) destinatario = body.match(new RegExp(regExEmail))[1];
+                  
+                // ¿El email extraído tiene pinta de email?
+                const emailTest = /^\S+@\S+\.[a-z]{2,}$/;
+
+                // Si es que no, o no se ha usando una RegEx, utilizar responder-a (puede no haberlo) o remitente (en ese orden)
+                if (!regExEmail || !(emailTest.test(destinatario))) destinatario = mensaje.getReplyTo() ? mensaje.getReplyTo() : mensaje.getFrom();
+
+                // Extraer el cuerpo HTML, imágenes en línea y adjuntos del borrador correspondiente
+                const elementosMensaje = extraerElementos(borrador.mensaje);
+
+                // Enviar mensaje y eliminar estrella si todo ha ido bien
+
+                try {
+
+                  console.info(`Enviando respuesta ${plantilla} a ${remitente}`);
+
+                  // Usaremos MailApp dado que GmailApp no preserva emojis en asunto ni cuerpo:
+                  // https://stackoverflow.com/questions/50686254/how-to-insert-an-emoji-into-an-email-sent-with-gmailapp/50690214
+                  MailApp.sendEmail(destinatario, borrador.asuntoRegEx[2],
+                    'Debes usar un cliente de correo compatible con HTML para visualizar este mensaje.',
+                    {
+                      htmlBody: elementosMensaje.htmlBody,
+                      attachments: elementosMensaje.attachments,
+                      inlineImages: elementosMensaje.inlineImages,
+                      name: remitente
+                    });
+
+                  // El estado "destacado" no se refresca visualmente (sí internamente) sí ha sido establecido *manualmente* >>  https://issuetracker.google.com/issues/77320923
+                  mensaje.unstar().markRead().refresh();
+
+                  operaciones.push(
+                    {
+                      estado: EMAYORDOMO.simboloOk,
+                      inicio: selloTiempo,
+                      tiempo: new Date(),
+                      etiqueta: etiqueta,
+                      email: destinatario,
+                      plantilla: plantilla,
+                      mensaje: `Autorespuesta enviada`
+                    });
+
+                } catch(e) {
+                  console.error(`Error al enviar respuesta ${plantilla} a ${remitente}.`);
+                  operaciones.push(
+                    {
+                      estado: EMAYORDOMO.simboloError,
+                      inicio: selloTiempo,
+                      tiempo: new Date(),
+                      etiqueta: etiqueta,
+                      email: destinatario,
+                      plantilla: plantilla,
+                      mensaje: `Error indeterminado al enviar email`
+                    });
+                }
+              }
+              
+              // Refresca hilo para que .hasStarredMessages() devuelva el valor correcto inmediatamente >> https://stackoverflow.com/a/65515913
+              hilo.refresh();  
+            }); // De envío de respuesta  
+            
+            hilo.moveToArchive().refresh();
+
+          } // De procesamiento de mensajes de cada hilo
+        }); // De procesamiento de hilos
+      } // De comprobación de existencia de plantilla
     } // De existencia de etiqueta a procesar
   }); // De proceso de la regla de cada etiqueta
 
