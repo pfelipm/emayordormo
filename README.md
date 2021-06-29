@@ -21,7 +21,7 @@
         *   [acercaDe()](#acercade)
         *   [ejecutarManualmente()](#ejecutarManualmente)
         *   [procesarEmails()](3procesarEmails)
-        *   [etiquetasMensaje](#etiquetasMensaje)
+        *   [etiquetasMensaje()](#etiquetasMensaje)
         *   [duplicarBorradorAPI()](#duplicarborradorapi-y-extraerelementos)
 *   [Mejoras y reflexiones finales](#mejoras-y-reflexiones-finales)
 *   [Licencia](#licencia)
@@ -977,7 +977,7 @@ function etiquetaMensaje(msg, etiqueta) {
 
 El nudo gordiano del desarrollo de eMayordomo ha sido sin duda cómo confeccionar y enviar correos electrónicos a partir de borradores.
 
-Mi estrategia inicial se basaba en \[1\] duplicar un borrador dado para a continuación \[2\] modificar el asunto (recuerda que necesitamos eliminar el prefijo que se usa como elemento selector en las reglas de respuesta automática) y enviar la copia al destinatario que correspondiera.
+Mi estrategia inicial se basó en \[1\] duplicar un borrador dado para a continuación \[2\] modificar el asunto (recuerda que necesitamos eliminar el prefijo que se usa como elemento selector en las reglas de respuesta automática) y enviar la copia al destinatario que correspondiera.
 
 Lo primero se puede resolver con estas líneas de código, correspondientes a  `duplicarBorradorAPI()`, que usan de manera directa la [API de Gmail](https://developers.google.com/gmail/api), concretamente su método [users.drafts.create](https://developers.google.com/gmail/api/reference/rest/v1/users.drafts/create). El truco está en emplear el URI de subida de archivos para conseguir una réplica perfecta de imágenes incrustadas y adjuntos, a partir del contenido crudo del borrador original, leído con [`GmailMessage.getRawContent()`](https://developers.google.com/apps-script/reference/gmail/gmail-message#getRawContent()).
 
