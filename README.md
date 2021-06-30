@@ -52,7 +52,7 @@ En el artículo mencionado anteriormente se facilitan las [especificaciones](htt
 4.  Cada una de las etiquetas anteriores llevará asociada una respuesta predefinida. Estas respuestas se construyen a partir de una serie de mensajes en borrador, en cuyo asunto se utilizan prefijos distintivos, siempre entre corchetes y con un espacio posterior para que el script pueda identificarlos con facilidad.
 5.  Para establecer los emparejamientos (etiqueta, borrador) se recurre a una tabla de reglas en una hoja de cálculo de Google, en la que a cada etiqueta se le asocia uno de los prefijos utilizados en los asuntos de los borradores.
 6.  Cada regla cuenta, opcionalmente, con una expresión regular para extraer la dirección de email a la que se debe responder del propio contenido del mensaje.
-7.  La hoja de cálculo dispone de un menú específico para el script que permite activarlo, es decir, instalar un [activador (*trigger*) instalable](https://developers.google.com/apps-script/guides/triggers/installable) que corre cada hora,o ejecutarlo manualmente. No se ha contemplado la posibilidad de que el usuario pueda seleccionar otras periodicidades.
+7.  La hoja de cálculo dispone de un menú específico para el script que permite activarlo, es decir, instalar un [activador (_trigger_) instalable](https://developers.google.com/apps-script/guides/triggers/installable) que corre cada hora,o ejecutarlo manualmente. No se ha contemplado la posibilidad de que el usuario pueda seleccionar otras periodicidades.
 8.  Cada vez que eMayordomo procesa el buzón de correo registra el resultado de todos los intentos de envío de respuestas en una tabla situada en otra pestaña de la hoja de cálculo. Esta información es procesada por un conjunto de fórmulas para obtener métricas de procesamiento para cada par etiqueta / borrador.
 
 # La hoja de cálculo
@@ -863,7 +863,7 @@ Finalmente, solo resta duplicar el borrador (si lo enviáramos tal cual nos qued
 De ese modo resulta posible utilizar a continuación el método [`MailApp.sendEmail()`](https://developers.google.com/apps-script/reference/mail/mail-app#sendEmail(String,String,String,Object)), pasándole en su objeto de [parámetros avanzados](https://developers.google.com/apps-script/reference/mail/mail-app#advanced-parameters_1) los elementos que se acaban de duplicar a partir del borrador. ¿Por qué `MailApp` en lugar de `GmailApp`? Pues porque [la segunda no admite emojis](https://twitter.com/pfelipm/status/1395116007623122947).
 
 ```javascript
-               // Extraer el cuerpo HTML, imágenes en línea y adjuntos del borrador correspondiente
+                // Extraer el cuerpo HTML, imágenes en línea y adjuntos del borrador correspondiente
                 const elementosMensaje = extraerElementos(borrador.mensaje);
 
                 // Enviar mensaje y eliminar estrella si todo ha ido bien
@@ -977,7 +977,7 @@ function etiquetaMensaje(msg, etiqueta) {
 
 El nudo gordiano del desarrollo de eMayordomo ha sido sin duda cómo confeccionar y enviar correos electrónicos a partir de borradores.
 
-Mi estrategia inicial se basó en \[1\] duplicar un borrador dado para a continuación \[2\] modificar el asunto (recuerda que necesitamos eliminar el prefijo que se usa como elemento selector en las reglas de respuesta automática) y enviar la copia al destinatario que correspondiera.
+Mi estrategia inicial se basó en \[1\] duplicar un borrador dado para a continuación \[2\] modificar el asunto (recuerda que necesitamos eliminar el prefijo que se usa como elemento selector en las reglas de respuesta automática) para finalmente enviar la copia al destinatario apropiado.
 
 Lo primero se puede resolver con estas líneas de código, correspondientes a  `duplicarBorradorAPI()`, que usan de manera directa la [API de Gmail](https://developers.google.com/gmail/api), concretamente su método [users.drafts.create](https://developers.google.com/gmail/api/reference/rest/v1/users.drafts/create). El truco está en emplear el URI de subida de archivos para conseguir una réplica perfecta de imágenes incrustadas y adjuntos, a partir del contenido crudo del borrador original, leído con [`GmailMessage.getRawContent()`](https://developers.google.com/apps-script/reference/gmail/gmail-message#getRawContent()).
 
@@ -1027,9 +1027,11 @@ function duplicarBorradorAPI(idBorrador) {
 }
 ```
 
-Pero lo segundo ya no ha estado tan claro. [No hallé el modo](https://twitter.com/pfelipm/status/1394808527156400128) de actualizar satisfactoriamente las cabeceras de la copia del borrador sin incluir en el cuerpo de la petición dirigida al método [users.drafts.update](https://developers.google.com/gmail/api/reference/rest/v1/users.drafts/update) la secuencia modificada de bytes del email en crudo, codificada como una cadena de texto en formato [RFC 2822](https://datatracker.ietf.org/doc/html/rfc2822) y con una codificación [Base64 apta para URL](https://base64.guru/standards/base64url). Un follón en el que no me apetecía nada meterme.
+Pero lo segundo ya no estuvoo tan claro. [No hallé el modo](https://twitter.com/pfelipm/status/1394808527156400128) de actualizar satisfactoriamente las cabeceras de la copia del borrador sin incluir en el cuerpo de la petición dirigida al método [users.drafts.update](https://developers.google.com/gmail/api/reference/rest/v1/users.drafts/update) la secuencia modificada de bytes del email en crudo, representada como una cadena de texto en formato [RFC 2822](https://datatracker.ietf.org/doc/html/rfc2822) y con una codificación [Base64 apta para URL](https://base64.guru/standards/base64url). Un follón en el que no me apetecía nada meterme.
 
 ![](https://user-images.githubusercontent.com/12829262/123703247-6d7a6880-d864-11eb-8d16-5120bf864d9a.png)
+
+Supongo que podría haber optado por eliminar el \[prefijo\] del asunto del borrador, hacer seguidamente una copia del mensaje y finalmente restaurarlo. Pero me pareció poco elegante, así que busqué otro modo de conseguirlo.
 
 Afortunadamente (casi) todos los caminos parecen estar andados. Martin Hakwsey [ya había propuesto](https://twitter.com/pfelipm/status/1384513431005548551) recientemente una estrategia alternativa para resolver este problema, un tanto más complicada pero que resuelve el problema estupendamente (_thanks for pointing me in the right direction, Martin_).  
 
