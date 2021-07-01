@@ -202,7 +202,6 @@ function gestionarTrigger(orden) {
         .timeBased()
         .everyHours(EMAYORDOMO.horasActivador)
         .create();
-        console.info('Creado');
       } catch(e) {
         estado = e;
       }
