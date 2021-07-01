@@ -9,7 +9,6 @@
  */
 
 // Algunas inicializaciones
-
 const EMAYORDOMO = {
   version: 'Versión: 1.0 (junio 2021)',
   icono: '📭',
