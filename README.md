@@ -195,7 +195,7 @@ La interfaz de usuario de eMayordormo no contempla en estos momentos la posibili
 
 Adicionalmente, y dado que eMayordomo requiere que se hayan definido una serie de reglas de filtro sobre el buzón de Gmail que se desea vigilar, se establece una verificación adicional para **impedir que un usuario distinto al propietario de la hoja de cálculo de control instale el activador**. Se supone, por tanto, que **el propietario de ambos elementos (buzón y hoja de cálculo) es el mismo**.
 
-Veamos las distintas funciones involucradas en esta gestión de los activadores.
+Veamos las distintas funciones involucradas en esta gestión de los activadores que se encuentran dentro de este archivo.
 
 ### comprobarEstado()
 
@@ -509,6 +509,33 @@ Importantísimo de nuevo el uso de un bloque [`try...catch`](https://developer.m
 Para establecer intervalos de ejecución con mayor granularidad bastaría sustituir el método [`everyHours()`](https://developers.google.com/apps-script/reference/script/clock-trigger-builder#everyhoursn) por [`everyMinutes()`](https://developers.google.com/apps-script/reference/script/clock-trigger-builder#everyminutesn).
 
 ## Código.gs
+
+Este es el archivo que contiene el código principal de eMayordomo. Contiene varias funciones y un bloque de inicialización de constantes utilizado en distintas secciones del script.
+
+```javascript
+// Algunas inicializaciones
+const EMAYORDOMO = {
+  version: 'Versión: 1.0 (junio 2021)',
+  icono: '📭',
+  nombre: 'eMayordomo',
+  tablaReglas: {
+    nombre: '🔀 Reglas',
+    colInicioRegla: 0,
+    colFinRegla: 2,
+    filInicialDatos: 2
+  },
+  tablaLog: {
+    nombre: '🗒️ Registro',
+    filInicialDatos: 3
+  },
+  simboloOk: '🆗',
+  simboloError: '⚠️',
+  simboloInfo: 'ℹ️',
+  maxEmails: 20,
+  propActivado: 'activadoPor',
+  horasActivador: 1
+};
+```
 
 ### onOpen()
 
