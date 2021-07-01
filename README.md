@@ -461,7 +461,7 @@ En todos los casos se actualiza el menú del script antes de finalizar y, como s
 
 ### gestionarTrigger()
 
-Se trata de una función auxiliar a la que llaman tanto `activar()` como `desactivar()`. Es la que se encarga realmente de crear o destruir el _trigger_, devolviendo como resultado un valor que indica si la operación ha podido realizare con éxito o no.
+Se trata de una función auxiliar a la que llaman tanto `activar()` como `desactivar()`. Es la que se encarga realmente de crear o destruir el _trigger_, devolviendo como resultado un valor que indica si la operación ha podido realizarse con éxito o no.
 
 ```javascript
 /**
@@ -482,7 +482,6 @@ function gestionarTrigger(orden) {
         .timeBased()
         .everyHours(EMAYORDOMO.horasActivador)
         .create();
-        console.info('Creado');
       } catch(e) {
         estado = e;
       }
@@ -506,6 +505,8 @@ function gestionarTrigger(orden) {
 ```
 
 Importantísimo de nuevo el uso de un bloque [`try...catch`](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Statements/try...catch) para dar caza a los errores en tiempo de ejecución y _fallar graciosamente_ cuando corresponda. Y es que si algo puede ir mal al utilizar los servicios de Apps Script, ten por seguro que en algún momento irá mal. Más vale que estés preparados para manejar la situación.
+
+Para establecer intervalos de ejecución con mayor granularidad bastaría sustituir el método [`everyHours()`](https://developers.google.com/apps-script/reference/script/clock-trigger-builder#everyhoursn) por [`everyMinutes()`](https://developers.google.com/apps-script/reference/script/clock-trigger-builder#everyminutesn).
 
 ## Código.gs
 
@@ -1150,7 +1151,9 @@ Y la primera sería dejar de utilizar el servicio estándar de Gmail para locali
 label:at-general is:starred 
 ```
 
-Además, esta estrategia resultará probablemente más eficiente que la empleada ahora mismo por eMayordomo, dado que son las tripas de la propia API de Gmail las que se encargan de todo.
+Esta estrategia es probablemente más eficiente que la empleada ahora mismo por eMayordomo, dado que son las tripas de la propia API de Gmail las que se encargan en este caso de todo.
+
+Además, una pequeña interfaz de usuario para establecer distintos intervalos de ejecución del _trigger_ que procesa el buzón de entrada, presentada en el interior de un [cuadro de diálogo modal](https://developers.google.com/apps-script/reference/base/ui.html#showModalDialog(Object,String)) o en un [panel lateral](https://developers.google.com/apps-script/reference/base/ui.html#showsidebaruserinterface), resultaría práctica.
 
 Por otro lado, le he prestado más bien poca atención a los [permisos que solicita el script](https://developers.google.com/apps-script/concepts/scopes) (_authorization scopes_), limitándome a aceptar los habitualmente permisivos en exceso que determina el editor Apps Script mientras se va escribiendo el código. Si en algún momento tuviera que salir de eMayordomo un desarrollo más elaborado, o tal vez un complemento publicado en la tienda de aplicaciones, habría que darle una vuelta a esto.
 
