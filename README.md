@@ -1134,7 +1134,7 @@ function actualizarLog(registros) {
 }
 ```
 
-Los valores más recientes aparecerán siempre en la parte superior de la hoja de cálculo. Este es un detalle insignificante pero que facilita comprobar la actividad reciente de eMayordomo, que aparece de inmediato al cargar la hoja de cálculo. Esto se consigue de dos maneras:
+Los valores más recientes aparecerán siempre en la parte superior de la hoja de cálculo. Este es un detalle insignificante pero que facilita comprobar los registros de la actividad reciente de eMayordomo, que aparecerán de inmediato al cargar la hoja de cálculo. Esto se consigue de dos maneras:
 
 *   Invirtiendo el vector donde se van anotando los eventos durante la ejecución de `procesarEmails()` antes de trasladarlo a la hoja de cálculo. Esto se hace con  el método [Array.reverse()](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Global_Objects/Array/reverse).
 *   Insertado las filas necesarias en parte superior de la tabla para dar cabida a los nuevos eventos a registrar.
