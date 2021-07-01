@@ -193,7 +193,7 @@ La interfaz de usuario de eMayordormo no contempla en estos momentos la posibili
 
 :point\_right: [Ver vídeo demostrativo en YouTube](https://youtu.be/O4HvbyFLeHw)
 
-Adicionalmente, y dado que eMayordomo requiere que se hayan definido una serie de reglas de filtro sobre el buzón de Gmail que se desea vigilar, se establece una **verificación adicional para impedir que un usuario distinto al propietario de la hoja de cálculo de control instale el activador**. Se supone, por tanto, que **el propietario de ambos elementos (buzón y hoja de cálculo) es el mismo**.
+Adicionalmente, y dado que eMayordomo requiere que se hayan definido una serie de reglas de filtro sobre el buzón de Gmail que se desea vigilar, se establece una verificación adicional para **impedir que un usuario distinto al propietario de la hoja de cálculo de control instale el activador**. Se supone, por tanto, que **el propietario de ambos elementos (buzón y hoja de cálculo) es el mismo**.
 
 Veamos las distintas funciones involucradas en esta gestión de los activadores.
 
