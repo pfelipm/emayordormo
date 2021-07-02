@@ -1,4 +1,4 @@
-![](https://user-images.githubusercontent.com/12829262/122110050-6132ec00-ce1e-11eb-99f8-e0ce463c6cd6.png)
+.
 
 # Tabla de contenidos
 
@@ -491,7 +491,7 @@ function gestionarTrigger(orden) {
       // Eliminar trigger(s)
       try {
         const triggers = ScriptApp.getProjectTriggers();
-        triggers.filter(t => t.getEventType() ==  ScriptApp.EventType.CLOCK).map(trigger => ScriptApp.deleteTrigger(trigger));
+        triggers.filter(t => t.getEventType() ==  ScriptApp.EventType.CLOCK).forEach(trigger => ScriptApp.deleteTrigger(trigger));
       } catch (e) {
         estado = e;
       }
