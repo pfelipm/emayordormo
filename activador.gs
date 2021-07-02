@@ -211,7 +211,7 @@ function gestionarTrigger(orden) {
       // Eliminar trigger(s)
       try {
         const triggers = ScriptApp.getProjectTriggers();
-        triggers.filter(t => t.getEventType() ==  ScriptApp.EventType.CLOCK).map(trigger => ScriptApp.deleteTrigger(trigger));
+        triggers.filter(t => t.getEventType() ==  ScriptApp.EventType.CLOCK).forEach(trigger => ScriptApp.deleteTrigger(trigger));
       } catch (e) {
         estado = e;
       }
