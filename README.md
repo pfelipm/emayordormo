@@ -1,3 +1,5 @@
+![](https://user-images.githubusercontent.com/12829262/126078672-8b8ea2a7-43aa-4f69-8211-74c8798f432d.png)
+
 # Tabla de contenidos
 
 *   [¿Qué es eMayordormo?](#qu%C3%A9-es-emayordormo)
