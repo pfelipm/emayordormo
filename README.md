@@ -1,5 +1,3 @@
-.
-
 # Tabla de contenidos
 
 *   [¿Qué es eMayordormo?](#qu%C3%A9-es-emayordormo)
