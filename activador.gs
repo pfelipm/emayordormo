@@ -6,7 +6,7 @@ function comprobarEstado() {
   
   const ssUi = SpreadsheetApp.getUi();
   const activadoPor = PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado);
-  if (activadoPor == '') {
+  if (!activadoPor) {
     mensaje = `No se está vigilando el buzón de Gmail en 2º plano.`;
   } else {
     mensaje = `El proceso en 2º plano ha sido activado por ${activadoPor}
