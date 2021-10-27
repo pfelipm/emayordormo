@@ -51,7 +51,7 @@ function construirMenu(activadoPor) {
   }
   
   // Resto del menú (no dinámico)  
-  menu.addItem('🔁 Ejecutar manualmente', 'ejecutarManualmente')
+  menu.addItem('🔁 Ejecutar manualmente', 'ejecutarManualmente');
   menu.addItem('❓ Comprobar estado', 'comprobarEstado')
     .addSeparator()
     .addItem(`💡 Acerca de ${EMAYORDOMO.nombre}`, 'acercaDe')
