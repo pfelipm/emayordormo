@@ -431,7 +431,7 @@ En caso contrario, simplemente se muestra una alerta informativa.
       // Aquí termina la sección crítica cuando *no* se realiza desactivación porque lo ha activado otro usuario o no está activado
       mutex.releaseLock();
 
-      if (activadoPor == '') {
+      if (!activadoPor) {
         mensaje = `${EMAYORDOMO.simboloError} El proceso en 2º plano no está activado.`;
       } else {
         mensaje = `${EMAYORDOMO.simboloError} El proceso en 2º plano debe ser desactivado por ${activadoPor}.`;
