@@ -158,7 +158,7 @@ function acercaDe() {
   panel.version = EMAYORDOMO.version;
   panel.nombre = EMAYORDOMO.nombre;
   SpreadsheetApp.getUi().showModalDialog(panel.evaluate().setWidth(420).setHeight(450), `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`);
-}
+} 
 ```
 
 ```html
@@ -241,9 +241,9 @@ Esta función es invocada al utilizar el comando `⏰ Procesar etiquetas cada ho
 
 ![](https://user-images.githubusercontent.com/12829262/123542152-3f076b00-d748-11eb-8762-eda619d51fb4.png)
 
-La lógica del control tiene en cuenta las circunstancias ya descritas, que pueden combinarse entre sí de distintos modos, para evitar tanto activaciones múltiples como que un usuario distinto al propietario de la hoja de cálculo realice la instalación del _trigger_ (cuando sea posible comprobarlo, claro está).
+La lógica del control tiene en cuenta las circunstancias ya descritas, que pueden combinarse entre sí de distintos modos, para evitar tanto ejecuciones múltiples del activador por tiempo como que un usuario distinto al propietario de la hoja de cálculo realice la instalación del _trigger_ (cuando sea posible comprobarlo, claro está). Se trata de garantizar así que los mensajes de correo electrónico sean tratados por eMayordomo **una sola vez** y este proceso se realice sobre el buzón de Gmail correcto.
 
-Primeramente se comprueba si ya hay un _trigger_ activo. De ser así se cancela la activación.
+Primeramente se trata de identificar al propietario de la hoja de cálculo.
 
 ```javascript
 /**
@@ -258,93 +258,98 @@ function activar() {
   const ssUi = SpreadsheetApp.getUi();
   let emailPropietario;
   let activar = true;
-  const activadoPor = PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado);
 
-  // [1] Cancelar si ya está activado
-  if (activadoPor) {
-    ssUi.alert(
-    `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
-    `${EMAYORDOMO.simboloError} Ya hay un proceso en 2º plano activado por ${activadoPor}.`,
-    ssUi.ButtonSet.OK);
+  // Veamos quién es el propietario de la hdc
+  const propietario = SpreadsheetApp.getActiveSpreadsheet().getOwner();
+  const emailUsuarioActivo = Session.getEffectiveUser().getEmail();
+  if (propietario) {
+    emailPropietario = propietario.getEmail();
+  } else {
+    emailPropietario = null;
+  }
 ```
 
- A continuación se trata de identificar al propietario de la hoja de cálculo.
-
-```javascript
-  } else {
-    // No hay proceso en 2º plano activo, veamos quién es el propietario de la hdc
-    const propietario = SpreadsheetApp.getActiveSpreadsheet().getOwner();
-    const emailUsuarioActivo = Session.getEffectiveUser().getEmail();
-    if (propietario) {
-      emailPropietario = propietario.getEmail();
-    } else {
-      emailPropietario = null;
-    }
-```
-
-Esta comprobación, no obstante, :warning: [no puede realizarse](https://twitter.com/pfelipm/status/1404186554378108931) :warning: **cuando la hoja de cálculo reside en una unidad compartida**. En esta circunstancia, eMayordomo informará al usuario y solicitará su confirmación antes de poner en marcha el activador por tiempo.
+Esta comprobación, no obstante, :warning: [no puede realizarse](https://twitter.com/pfelipm/status/1404186554378108931) :warning: **cuando la hoja de cálculo reside en una unidad compartida**, dado que el método `getEmail()` devuv entonces `null`.
 
 ![Imagen](https://pbs.twimg.com/media/E3yppjMWQAEzcgZ?format=png&name=900x900)
 
+En esta circunstancia, eMayordomo informará al usuario y solicitará su confirmación antes de tratar de poner en marcha el activador por tiempo.
+
 ```javascript
-    // [2] Si la hdc está en unidad compartida solicitar confirmación para proseguir o cancelar activación
-    if (!emailPropietario) {
-      activar = ssUi.alert(
-        `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
-        `Solo el propietario del buzón de Gmail en el que se han definido las reglas de
-        filtrado, etiquetas y borradores debe realizar la activación en 2º plano.
-        
-        ¿Seguro que deseas continuar?`,
-        ssUi.ButtonSet.OK_CANCEL) == ssUi.Button.OK;
-      if (!activar) {
-        ssUi.alert(
-          `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
-          `Activación en 2º plano cancelada.`,
-          ssUi.ButtonSet.OK);
-      }
+  // [1] Si la hdc está en unidad compartida solicitar confirmación para proseguir o cancelar activación
+  if (!emailPropietario) {
+    activar = ssUi.alert(
+      `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+      `Solo el propietario del buzón de Gmail en el que se han definido las reglas de
+      filtrado, etiquetas y borradores debe realizar la activación en 2º plano.
+      
+      ¿Seguro que deseas continuar?`,
+      ssUi.ButtonSet.OK_CANCEL) == ssUi.Button.OK;
+    if (!activar) {
+      ssUi.alert(
+        `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+        `Activación en 2º plano cancelada.`,
+        ssUi.ButtonSet.OK);
+    }
 ```
 
 Si el usuario actual del script no es quien realizó la activación, el proceso finaliza con un mensaje de alerta.
 
 ```javascript
-    } else if (emailPropietario != emailUsuarioActivo) {
-      // [3] Cancelar activación si se puede determinar que el usuario actual no es el propietario de la hdc
-      ssUi.alert(
-      `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
-      `${EMAYORDOMO.simboloError} Solo ${emailPropietario} debe activar el proceso en 2º plano.`,
-      ssUi.ButtonSet.OK);
-      activar = false;
-    }
+  // [2] Cancelar activación si se puede determinar que el usuario actual no es el propietario de la hdc
+  } else if (emailPropietario != emailUsuarioActivo) {
+    ssUi.alert(
+      `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+      `${EMAYORDOMO.simboloError} Solo ${emailPropietario} debe activar el proceso en 2º plano.`,
+      ssUi.ButtonSet.OK);
+    activar = false;
+  }
 ```
 
-De ser así se procede, en su caso, a tratar de poner en marcha el activador por tiempo, obteniendo previamente un acceso exclusivo a la sección de código crítica por medio de [`getDocumentLock()`](https://developers.google.com/apps-script/reference/lock/lock-service?hl=en#getDocumentLock()) y [`waitLock(1)`](https://developers.google.com/apps-script/reference/lock/lock?hl=en#waitLock(Integer)), que fallará inmediatamente con una excepción, capturada por el bloque [`try...catch`](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Statements/try...catch) si otra instancia del script estuviera tratando de realizar también la activación en ese mismo instante.
+Si nada hasta el momento nos ha obligado a abortar, entraremos ahora en la fase final de puesta en marcha del activador por tiempo. Pero para ejecutarla, el script debe obtener previamente acceso exclusivo a la sección de código correspondiente por medio de [`getDocumentLock()`](https://developers.google.com/apps-script/reference/lock/lock-service?hl=en#getDocumentLock()) y [`waitLock(1)`](https://developers.google.com/apps-script/reference/lock/lock?hl=en#waitLock(Integer)), que fallará inmediatamente con una excepción, capturada por el bloque [`try...catch`](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Statements/try...catch), si otra instancia del script estuviera tratando de realizar también la activación en ese mismo instante.
 
 ```javascript
-    // [4] Continuamos con activación a menos que se haya cancelado en [2] o [3]
-    if (activar) {
+  // [3] Continuamos con activación a menos que se haya cancelado en [2] o [3]
+  if (activar) {
 
-      // Solo gestionaremos el activador si no hay otra instancia del script ya intentándolo
-      const mutex = LockService.getDocumentLock();
-      try {
+    // Solo gestionaremos el activador si no hay otra instancia del script ya intentándolo
+    const mutex = LockService.getDocumentLock();
+    try {
 
-        // Queremos fallar cuanto antes
-        mutex.waitLock(1);
+      // Queremos fallar cuanto antes
+      mutex.waitLock(1);
 ```
 
-Si el script consigue acceder al bloque de código protegido por el semáforo de acceso, invocará a continuación `gestionarTrigger('ON')` para instalar el activador. Si la llamada tiene éxito se escribe la dirección de email del usuario que ha conseguido ejecutar este procedimiento en la propiedad del documento indicada por la constante de texto `EMAYORDOMO.propActivado`. 
+Esto es necesario para garantizar que el valor de la propiedad del documento indicada por la constante global `EMAYORDOMO.propActivado`, utilizada para determinar qué usuario ha puesto en marcha el activador por tiempo, tiene un valor consiste en todas las instancias de la función de activación que pudieran estar ejecutándose de manera concurrente.
 
-En caso contrario, o si se ha producido algún otro error en tiempo de ejecución, se emiten las alertas correspondientes.
+Si el script consigue acceder al bloque de código protegido por el semáforo de acceso comprueba primeramente si ya hay un _trigger_ activo. De ser así se cancelará la activación.
+
+```javascript
+      const activadoPor = PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado);
+
+      // [4] Cancelar si ya está activado
+      if (activadoPor) {
+        ssUi.alert(
+          `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+          `${EMAYORDOMO.simboloError} Ya hay un proceso en 2º plano activado por ${activadoPor}.`,
+          ssUi.ButtonSet.OK);
+      } else {
+```
+
+Si el activador por tiempo aún no existe, invocará a continuación la función `gestionarTrigger('ON')` para instalar el activador. Si la llamada tiene éxito se escribirá la dirección de email del usuario que ha conseguido ejecutar este procedimiento en la mencionada propiedad referida por la constante global `EMAYORDOMO.propActivado`. 
+
+En caso contrario, o si se ha producido algún otro error en tiempo de ejecución, se emitirán las alertas correspondientes.
 
 ```javascript
         const resultado = gestionarTrigger('ON');
-        let mensaje;    
+        let mensaje;
         if (resultado == 'OK') {
           mensaje = `Vigilando ahora el buzón de Gmail de ${emailUsuarioActivo}.`;
           PropertiesService.getDocumentProperties().setProperty(EMAYORDOMO.propActivado, emailUsuarioActivo);
         } else {
           mensaje = `${EMAYORDOMO.simboloError} Se ha producido un error en la activación del proceso en 2º plano: 
-
-          ${resultado}`;
+            
+            ${resultado}`;
         }
 
         // Aquí termina la sección crítica cuando se intenta realizar activación
@@ -354,14 +359,14 @@ En caso contrario, o si se ha producido algún otro error en tiempo de ejecució
           `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
           mensaje,
           ssUi.ButtonSet.OK);
-
-      } catch(e) {
-           // No ha sido posible obtener acceso al bloque de código exclusivo
-        ssUi.alert(
-          `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
-          `${EMAYORDOMO.simboloError} En este momento no es posible activar el proceso en 2º plano, inténtalo más tarde.`,
-          ssUi.ButtonSet.OK);
       }
+
+    } catch (e) {
+      // No ha sido posible obtener acceso al bloque de código exclusivo
+      ssUi.alert(
+        `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+        `${EMAYORDOMO.simboloError} En este momento no es posible activar el proceso en 2º plano, inténtalo más tarde.`,
+        ssUi.ButtonSet.OK);
     }
   }
 ```
@@ -369,7 +374,7 @@ En caso contrario, o si se ha producido algún otro error en tiempo de ejecució
 Antes de terminar, se actualiza nuevamente el menú del script para reflejar el cambio en el primer comando, que ahora se transformará en `⏸️ Dejar de procesar etiquetas cada hora` siempre y cuando la activación del _trigger_ se haya realizado del modo esperado.
 
 ```javascript
-  // Se ejecuta siempre para sincronizar estado del menú cuanto antes cuando hay varias instancias abiertas de la hdc
+  // Se ejecuta siempre para sincronizar estado del menú cuanto antes cuando hay varias instancias abiertas de la hdc
   construirMenu(PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado));
 
 }
@@ -597,11 +602,13 @@ Si un usuario distinto al que ejecuta la función ya ha activado el funcionamien
 
 ```javascript
 /**
- * Menú >> Ejecutar manualmente la función procesarEmails(),
- * Trata de impedir que un usuario distinto al propietario de la hdc realice un proceso manual
- * esto es una medida de seguridad para evitar que eMayordomo actúe sobre el buzón de
- * Gmail incorrecto. La comprobación no es concluyente cuando la hdc reside en una
- * unidad compartida, en ese caso se solicita confirmación al usuario para proceder.
+ * Menú >> Ejecutar manualmente la función procesarEmails(),
+ * Trata de impedir que un usuario distinto al propietario de la hdc 
+ * o al usuario que ha activado el proceso en 2º plano realice un proceso manual, 
+ * esta es una medida de seguridad para evitar que eMayordomo actúe sobre el buzón de
+ * Gmail incorrecto. La comprobación no es concluyente cuando la hdc reside en una
+ * unidad compartida y el script no está funcionando en 2º plano, en ese caso se
+ * solicita confirmación al usuario para proceder.
  */
 function ejecutarManualmente() {
 
@@ -622,42 +629,42 @@ function ejecutarManualmente() {
 En caso contrario, se pasa a determinar quién es el propietario de  la hoja de cálculo, del mismo modo que en la función `activar()`.
 
 ```javascript
-  } else {
-    // No hay proceso en 2º plano activo, veamos quién es el propietario de la hdc ¡getOwner() devuelve null si hdc está en unidad compartida!
-    let emailPropietario;
-    const propietario = SpreadsheetApp.getActiveSpreadsheet().getOwner();
-    if (propietario) {
-      emailPropietario = propietario.getEmail();
-    } else {
-      emailPropietario = null;
-    }
+  else {
+    // No hay proceso en 2º plano activado por otro usuario distinto al actual,veamos quién es el propietario de la hdc
+    let emailPropietario;
+    const propietario = SpreadsheetApp.getActiveSpreadsheet().getOwner(); // devuelve null si hdc está en unidad compartida!
+    if (propietario) {
+      emailPropietario = propietario.getEmail();
+    } else {
+      emailPropietario = null;
+    }
 ```
 
 Lo que sigue es muy similar. Si la hoja de cálculo está en una unidad compartida se pide confirmación al usuario.
 
 ```javascript
-    // [2] Si la hdc está en unidad compartida y el proceso en 2º plano no ha sido activado por el usuario actual solicitar confirmación para proseguir
-    if (!emailPropietario && activadoPor != emailUsuarioActivo) {
-      ejecutar = ssUi.alert(
-        `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
-        `Solo el propietario del buzón de Gmail en el que se han definido las reglas de
-        filtrado, etiquetas y borradores debe realizar un procesado manual.
-        
-        ¿Seguro que deseas continuar?`,
-        ssUi.ButtonSet.OK_CANCEL) == ssUi.Button.OK;
+    // [2] Si la hdc está en unidad compartida y el proceso en 2º plano no ha sido activado solicitar confirmación para proseguir
+    if (!emailPropietario && !activadoPor) {
+      ejecutar = ssUi.alert(
+        `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+        `Solo el propietario del buzón de Gmail en el que se han definido las reglas de
+        filtrado, etiquetas y borradores debe realizar un procesado manual.
+        
+        ¿Seguro que deseas continuar?`,
+        ssUi.ButtonSet.OK_CANCEL) == ssUi.Button.OK;
 ```
 
 Si no lo está, se verifica si el usuario activo no es el propietario de la hoja de cálculo, en ese caso se cancela también la ejecución manual.
 
 ```javascript
-   } else if (emailPropietario && emailPropietario != emailUsuarioActivo) {
-     // [3] Cancelar ejecución si se puede determinar que el usuario actual no es el propietario de la hdc
-     ssUi.alert(
-     `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
-     `${EMAYORDOMO.simboloError} Solo ${emailPropietario} debe realizar un procesado manual.`,
-     ssUi.ButtonSet.OK);
-     ejecutar = false;
-   }
+    } else if (emailPropietario && emailPropietario != emailUsuarioActivo) {
+      // [3] Cancelar ejecución si se puede determinar que el usuario actual no es el propietario de la hdc
+      ssUi.alert(
+        `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+        `${EMAYORDOMO.simboloError} Solo ${emailPropietario} debe realizar un procesado manual.`,
+        ssUi.ButtonSet.OK);
+      ejecutar = false;
+    }
 ```
 
 Por último se llama, en su caso, a la función `procesarEmails()`.
