@@ -20,7 +20,7 @@
         *   [construirMenu()](#construirmenu)
         *   [acercaDe()](#acercade)
         *   [ejecutarManualmente()](#ejecutarManualmente)
-        *   [procesarEmails()](3procesarEmails)
+        *   [procesarEmails()](#procesarEmails)
         *   [etiquetasMensaje()](#etiquetasMensaje)
         *   [duplicarBorradorAPI()](#duplicarborradorapi-y-extraerelementos)
 *   [Mejoras y reflexiones finales](#mejoras-y-reflexiones-finales)
