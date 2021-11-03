@@ -643,7 +643,7 @@ En caso contrario, se pasa a determinar quién es el propietario de  la hoja de
 Lo que sigue es muy similar a lo que veíamos en dicha función. Si la hoja de cálculo está en una unidad compartida se pide confirmación al usuario.
 
 ```javascript
-    // [2] Si la hdc está en unidad compartida y el proceso en 2º plano no ha sido activado solicitar confirmación para proseguir
+    // [2] Si la hdc está en unidad compartida y el proceso en 2º plano no ha sido activado nunca solicitar confirmación para proseguir
     if (!emailPropietario && !activadoPor) {
       ejecutar = ssUi.alert(
         `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
