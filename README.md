@@ -184,7 +184,7 @@ El modo de funcionamiento natural de eMayordomo es en 2º plano, gracias a un [a
 
 La interfaz de usuario de eMayordormo no contempla en estos momentos la posibilidad de que el usuario pueda introducir una frecuencia distinta a 1 hora para las ejecuciones periódicas del activador por tiempo, pero este valor puede ser variado fácilmente modificando la constante `EMAYORDOMO.horasActivador` en la sección de inicialización de variables globales en `Código.gs`.
 
-:warning: Cuando un script que instala _triggers_ puede ser utilizado por varios usuarios es conveniente **impedir que se activen múltiples instancias**. De lo contrario nos podemos encontrar con la situación de que el script reacciona por duplicado ante un determinado evento, lo que probablemente puede suponer un mal funcionamiento o, como mínimo, un pérdida de eficiencia. Esto se consigue utilizando:
+:warning: Cuando un script que instala _triggers_ puede ser utilizado por varios usuarios es conveniente **impedir que se activen múltiples instancias del mismo**. De lo contrario nos podemos encontrar con la situación de que el script reaccione por duplicado ante un determinado evento, lo que probablemente supondríar un mal funcionamiento o, como mínimo, un pérdida de eficiencia. Esto se consigue utilizando:
 
 *   [PropertiesService](https://developers.google.com/apps-script/guides/properties), para llevar la cuenta de la dirección de email del usuario que ha realizado la activación del _trigger_. Un valor de `null` o `''` indica que no está activo. El uso de este registro es imprescindible dado que un usuario [no puede determinar](https://developers.google.com/apps-script/reference/script/script-app#getProjectTriggers()) qué _triggers han_ sido activados por otros, ni siquiera en el contexto de un mismo script. La información se guarda en el registro de **propiedades del documento**, de modo que quede compartida entre todos sus usuarios.
 *   [LockService](https://developers.google.com/apps-script/reference/lock), para garantizar que no se produzcan problemas de concurrencia al modificar la propiedad que identifica al usuario que ha instalado el activador. Dado que este script no se distribuye como complemento, [`getDocumentLock()`](https://developers.google.com/apps-script/reference/lock/lock-service?hl=en#getdocumentlock) y [`getScriptLock()`](https://developers.google.com/apps-script/reference/lock/lock-service?hl=en#getscriptlock). podrían utilizarse indistintamente, obteniendo en ambos casos los mismos resultados.
@@ -241,7 +241,7 @@ Esta función es invocada al utilizar el comando `⏰ Procesar etiquetas cada ho
 
 ![](https://user-images.githubusercontent.com/12829262/123542152-3f076b00-d748-11eb-8762-eda619d51fb4.png)
 
-La lógica del control tiene en cuenta las circunstancias ya descritas, que pueden combinarse entre sí de distintos modos, para evitar tanto ejecuciones múltiples del activador por tiempo como que un usuario distinto al propietario de la hoja de cálculo realice la instalación del _trigger_ (cuando sea posible comprobarlo, claro está). Se trata de garantizar así que los mensajes de correo electrónico sean tratados por eMayordomo **una sola vez** y este proceso se realice sobre el buzón de Gmail correcto.
+La lógica del control tiene en cuenta las circunstancias ya descritas, que pueden combinarse entre sí de distintos modos, para evitar tanto ejecuciones múltiples del activador por tiempo como que un usuario distinto al propietario de la hoja de cálculo (cuando sea posible determinar quién es el propietario, claro está) realice la instalación del _trigger_. Se trata de garantizar así que los mensajes de correo electrónico sean tratados por eMayordomo **una sola vez** y este proceso se realice sobre el buzón de Gmail correcto.
 
 Primeramente se trata de identificar al propietario de la hoja de cálculo.
 
@@ -269,7 +269,7 @@ function activar() {
   }
 ```
 
-Esta comprobación, no obstante, :warning: [no puede realizarse](https://twitter.com/pfelipm/status/1404186554378108931) :warning: **cuando la hoja de cálculo reside en una unidad compartida**, dado que el método `getEmail()` devuv entonces `null`.
+Esta comprobación, no obstante, :warning: [no puede realizarse](https://twitter.com/pfelipm/status/1404186554378108931) :warning: **cuando la hoja de cálculo reside en una unidad compartida**, dado que el método `getEmail()` devuelve entonces `null`.
 
 ![Imagen](https://pbs.twimg.com/media/E3yppjMWQAEzcgZ?format=png&name=900x900)
 
@@ -282,7 +282,7 @@ En esta circunstancia, eMayordomo informará al usuario y solicitará su confirm
       `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
       `Solo el propietario del buzón de Gmail en el que se han definido las reglas de
       filtrado, etiquetas y borradores debe realizar la activación en 2º plano.
-      
+
       ¿Seguro que deseas continuar?`,
       ssUi.ButtonSet.OK_CANCEL) == ssUi.Button.OK;
     if (!activar) {
@@ -320,9 +320,9 @@ Si nada hasta el momento nos ha obligado a abortar, entraremos ahora en la fase 
       mutex.waitLock(1);
 ```
 
-Esto es necesario para garantizar que el valor de la propiedad del documento indicada por la constante global `EMAYORDOMO.propActivado`, utilizada para determinar qué usuario ha puesto en marcha el activador por tiempo, tiene un valor consiste en todas las instancias de la función de activación que pudieran estar ejecutándose de manera concurrente.
+Esto es necesario para garantizar que el valor de la propiedad del documento indicada por la constante global `EMAYORDOMO.propActivado`, utilizada para determinar qué usuario ha puesto en marcha el activador por tiempo, tiene un valor consistente en todas las instancias de la función de activación que pudieran estar ejecutándose de manera concurrente.
 
-Si el script consigue acceder al bloque de código protegido por el semáforo de acceso comprueba primeramente si ya hay un _trigger_ activo. De ser así se cancelará la activación.
+Si el script consigue acceder al bloque de código protegido por el semáforo de acceso comprobará primeramente si ya hay un _trigger_ activo. De ser así se cancelará la activación inmediatamente.
 
 ```javascript
       const activadoPor = PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado);
@@ -336,7 +336,7 @@ Si el script consigue acceder al bloque de código protegido por el semáforo de
       } else {
 ```
 
-Si el activador por tiempo aún no existe, invocará a continuación la función `gestionarTrigger('ON')` para instalar el activador. Si la llamada tiene éxito se escribirá la dirección de email del usuario que ha conseguido ejecutar este procedimiento en la mencionada propiedad referida por la constante global `EMAYORDOMO.propActivado`. 
+Si el activador por tiempo aún no existe, invocará a continuación la función `gestionarTrigger('ON')` para instalarlo. Si la llamada tiene éxito se escribirá la dirección de email del usuario que ha conseguido ejecutar este procedimiento en la mencionada propiedad referida por la constante global `EMAYORDOMO.propActivado`. 
 
 En caso contrario, o si se ha producido algún otro error en tiempo de ejecución, se emitirán las alertas correspondientes.
 
@@ -348,7 +348,7 @@ En caso contrario, o si se ha producido algún otro error en tiempo de ejecució
           PropertiesService.getDocumentProperties().setProperty(EMAYORDOMO.propActivado, emailUsuarioActivo);
         } else {
           mensaje = `${EMAYORDOMO.simboloError} Se ha producido un error en la activación del proceso en 2º plano: 
-            
+
             ${resultado}`;
         }
 
@@ -371,7 +371,7 @@ En caso contrario, o si se ha producido algún otro error en tiempo de ejecució
   }
 ```
 
-Antes de terminar, se actualiza nuevamente el menú del script para reflejar el cambio en el primer comando, que ahora se transformará en `⏸️ Dejar de procesar etiquetas cada hora` siempre y cuando la activación del _trigger_ se haya realizado del modo esperado.
+Antes de terminar, se actualiza nuevamente el menú del script para reflejar el cambio en el primer comando que muestra en su interior, que ahora se transformará en `⏸️ Dejar de procesar etiquetas cada hora` siempre y cuando la activación del _trigger_ se haya realizado del modo esperado, comprobación que se realiza en el interior de la función `construirMenu()`.
 
 ```javascript
   // Se ejecuta siempre para sincronizar estado del menú cuanto antes cuando hay varias instancias abiertas de la hdc
@@ -592,13 +592,13 @@ Esta función es invocada por el comando `💡 Acerca de eMayordomo` y se util
 
 ### ejecutarManualmente()
 
-eMayordomo también admite la ejecución manual del proceso de atención a los mensajes recibidos en el buzón de Gmail. Esto puede resultar de utilidad para procesar correos electrónicos a los que no se ha respondido como consecuencia de algún error temporal.
+eMayordomo también admite la ejecución manual del proceso de atención a los mensajes recibidos en el buzón de Gmail. Esto puede resultar de utilidad para intentar tratar nuevamente aquellos correos electrónicos a los que no se haya respondido como consecuencia de algún error temporal o tal vez también en el caso de que por alguna razón el script haya permanecido dormido —desactivado— durante algún tiempo.
 
 Esta función puede invocarse con el comando `🔁 Ejecutar manualmente`.
 
 ![](https://user-images.githubusercontent.com/12829262/123556666-c1b21980-d78c-11eb-9a60-05900701e74f.png)
 
-Si un usuario distinto al que ejecuta la función ya ha activado el funcionamiento en 2º plano de eMayordomo la ejecución manual queda cancelada. Lógico, el buzón de Gmail no será en ese caso el del usuario actual.
+Si un usuario distinto al que ejecuta la función ya ha activado el funcionamiento en 2º plano de eMayordomo la ejecución manual quedará cancelada. Lógico, el buzón de Gmail sobre el que debe actuar eMayordomo no será en ese caso el del usuario actual que trata de desencadenar un procesado manual.
 
 ```javascript
 /**
@@ -640,7 +640,7 @@ En caso contrario, se pasa a determinar quién es el propietario de  la hoja de
     }
 ```
 
-Lo que sigue es muy similar. Si la hoja de cálculo está en una unidad compartida se pide confirmación al usuario.
+Lo que sigue es muy similar a lo que veíamos en dicha función. Si la hoja de cálculo está en una unidad compartida se pide confirmación al usuario.
 
 ```javascript
     // [2] Si la hdc está en unidad compartida y el proceso en 2º plano no ha sido activado solicitar confirmación para proseguir
@@ -649,7 +649,7 @@ Lo que sigue es muy similar. Si la hoja de cálculo está en una unidad comparti
         `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
         `Solo el propietario del buzón de Gmail en el que se han definido las reglas de
         filtrado, etiquetas y borradores debe realizar un procesado manual.
-        
+
         ¿Seguro que deseas continuar?`,
         ssUi.ButtonSet.OK_CANCEL) == ssUi.Button.OK;
 ```
@@ -1062,7 +1062,7 @@ function duplicarBorradorAPI(idBorrador) {
 }
 ```
 
-Pero lo segundo ya no estuvoo tan claro. [No hallé el modo](https://twitter.com/pfelipm/status/1394808527156400128) de actualizar satisfactoriamente las cabeceras de la copia del borrador sin incluir en el cuerpo de la petición dirigida al método [users.drafts.update](https://developers.google.com/gmail/api/reference/rest/v1/users.drafts/update) la secuencia modificada de bytes del email en crudo, representada como una cadena de texto en formato [RFC 2822](https://datatracker.ietf.org/doc/html/rfc2822) y con una codificación [Base64 apta para URL](https://base64.guru/standards/base64url). Un follón en el que no me apetecía nada meterme.
+Pero lo segundo ya no estuvo tan claro. [No hallé el modo](https://twitter.com/pfelipm/status/1394808527156400128) de actualizar satisfactoriamente las cabeceras de la copia del borrador sin incluir en el cuerpo de la petición dirigida al método [users.drafts.update](https://developers.google.com/gmail/api/reference/rest/v1/users.drafts/update) la secuencia modificada de bytes del email en crudo, representada como una cadena de texto en formato [RFC 2822](https://datatracker.ietf.org/doc/html/rfc2822) y con una codificación [Base64 apta para URL](https://base64.guru/standards/base64url). Un follón en el que no me apetecía nada meterme.
 
 ![](https://user-images.githubusercontent.com/12829262/123703247-6d7a6880-d864-11eb-8d16-5120bf864d9a.png)
 
@@ -1187,7 +1187,7 @@ label:at-general is:starred
 
 Esta estrategia es probablemente más eficiente que la empleada ahora mismo por eMayordomo, dado que son las tripas de la propia API de Gmail las que se encargan en este caso de todo.
 
-Además, una pequeña interfaz de usuario para establecer distintos intervalos de ejecución del _trigger_ que procesa el buzón de entrada, presentada en el interior de un [cuadro de diálogo modal](https://developers.google.com/apps-script/reference/base/ui.html#showModalDialog(Object,String)) o en un [panel lateral](https://developers.google.com/apps-script/reference/base/ui.html#showsidebaruserinterface), resultaría práctica.
+Además, resultaría práctico disponer de una pequeña interfaz de usuario, presentada en el interior de un [cuadro de diálogo modal](https://developers.google.com/apps-script/reference/base/ui.html#showModalDialog(Object,String)) o en un [panel lateral](https://developers.google.com/apps-script/reference/base/ui.html#showsidebaruserinterface), para establecer distintos intervalos de ejecución del _trigger_ que procesa el buzón de entrada.
 
 Por otro lado, le he prestado más bien poca atención a los [permisos que solicita el script](https://developers.google.com/apps-script/concepts/scopes) (_authorization scopes_), limitándome a aceptar los habitualmente permisivos en exceso que determina el editor Apps Script mientras se va escribiendo el código. Si en algún momento tuviera que salir de eMayordomo un desarrollo más elaborado, o tal vez un complemento publicado en la tienda de aplicaciones, habría que darle una vuelta a esto.
 
