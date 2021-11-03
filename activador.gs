@@ -218,7 +218,6 @@ function gestionarTrigger(orden) {
       } catch (e) {
         estado = e;
       }
-
       break;
   }
 
