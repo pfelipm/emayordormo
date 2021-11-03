@@ -309,7 +309,7 @@ Si el usuario actual del script no es quien realizó la activación, el proceso 
 Si nada hasta el momento nos ha obligado a abortar, entraremos ahora en la fase final de puesta en marcha del activador por tiempo. Pero para ejecutarla, el script debe obtener previamente acceso exclusivo a la sección de código correspondiente por medio de [`getDocumentLock()`](https://developers.google.com/apps-script/reference/lock/lock-service?hl=en#getDocumentLock()) y [`waitLock(1)`](https://developers.google.com/apps-script/reference/lock/lock?hl=en#waitLock(Integer)), que fallará inmediatamente con una excepción, capturada por el bloque [`try...catch`](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Statements/try...catch), si otra instancia del script estuviera tratando de realizar también la activación en ese mismo instante.
 
 ```javascript
-  // [3] Continuamos con activación a menos que se haya cancelado en [2] o [3]
+  // [3] Continuamos con activación a menos que se haya cancelado en [1] o [2]
   if (activar) {
 
     // Solo gestionaremos el activador si no hay otra instancia del script ya intentándolo
