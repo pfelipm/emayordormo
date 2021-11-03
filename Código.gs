@@ -6,11 +6,17 @@
  * @OnlyCurrentDoc
  * 
  * Copyright (C) Pablo Felip (@pfelipm) · Se distribuye bajo licencia GNU GPL v3.
+ * 
+ * v1.1 (03/11/21):
+ *  - Ajustes en la lógica de activar(): solo se lee la propiedad activadoPor dentro del mutex.
+ *  - Ajustes en la lógica de desActivar(): se contempla la posibilidad de que activadoPor pueda ser null.
+ *  - Ajustes en la lógica de ejecutarManualmente(): cuando el propietario de la hdc es desconocido solo se pide confirmación si el trigger no se ha instalado nunca.
+ *  - ejecutarManualemnte(): se usa toast() para señalizar el inicio y fin del proceso manual en lugar de alert().
  */
 
 // Algunas inicializaciones
 const EMAYORDOMO = {
-  version: 'Versión: 1.0 (junio 2021)',
+  version: 'Versión: 1.1 (noviembre 2021)',
   icono: '📭',
   nombre: 'eMayordomo',
   tablaReglas: {
@@ -35,35 +41,35 @@ const EMAYORDOMO = {
  * Construye el menú de la aplicación al abrir la hdc de acuerdo con el estado de activación
  */
 function onOpen() {
-  
+
   construirMenu(PropertiesService.getDocumentProperties().getProperty(EMAYORDOMO.propActivado));
- 
+
 }
 
 function construirMenu(activadoPor) {
 
   // Construye menú en función del estado del trigger
-  const menu = SpreadsheetApp.getUi().createMenu(`${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`);  
+  const menu = SpreadsheetApp.getUi().createMenu(`${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`);
   if (!activadoPor) {
     menu.addItem('️⏰ Procesar etiquetas cada hora', 'activar');
   } else {
     menu.addItem('⏸️ Dejar de procesar etiquetas cada hora', 'desactivar');
   }
-  
+
   // Resto del menú (no dinámico)  
   menu.addItem('🔁 Ejecutar manualmente', 'ejecutarManualmente');
   menu.addItem('❓ Comprobar estado', 'comprobarEstado')
     .addSeparator()
     .addItem(`💡 Acerca de ${EMAYORDOMO.nombre}`, 'acercaDe')
     .addToUi();
-  
+
 }
 
 /**
  * Muestra la ventana de información de la aplicación
  */
 function acercaDe() {
-  
+
   let panel = HtmlService.createTemplateFromFile('acercaDe');
   panel.version = EMAYORDOMO.version;
   panel.nombre = EMAYORDOMO.nombre;
@@ -73,10 +79,12 @@ function acercaDe() {
 
 /**
  * Menú >> Ejecutar manualmente la función procesarEmails(),
- * Trata de impedir que un usuario distinto al propietario de la hdc realice un proceso manual
- * esto es una medida de seguridad para evitar que eMayordomo actúe sobre el buzón de
+ * Trata de impedir que un usuario distinto al propietario de la hdc 
+ * o al usuario que ha activado el proceso en 2º plano realice un proceso manual, 
+ * esta es una medida de seguridad para evitar que eMayordomo actúe sobre el buzón de
  * Gmail incorrecto. La comprobación no es concluyente cuando la hdc reside en una
- * unidad compartida, en ese caso se solicita confirmación al usuario para proceder.
+ * unidad compartida y el script no está funcionando en 2º plano, en ese caso se
+ * solicita confirmación al usuario para proceder.
  */
 function ejecutarManualmente() {
 
@@ -85,25 +93,25 @@ function ejecutarManualmente() {
   const emailUsuarioActivo = Session.getEffectiveUser().getEmail();
   let ejecutar = true;
 
-  // [1] ¿Otro usuario ha realizado ya la activación?
+  // [1] ¿Un usuario distinto ha realizado ya la activación?
   if (activadoPor && activadoPor != emailUsuarioActivo) {
     ssUi.alert(
-    `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
-    `${EMAYORDOMO.simboloError} Ya hay un proceso en 2º plano activado por ${activadoPor}, no parece
+      `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+      `${EMAYORDOMO.simboloError} Ya hay un proceso en 2º plano activado por ${activadoPor}, no parece
     buena idea que un usuario distinto (¡tú!) realice un procesado manual.`,
-    ssUi.ButtonSet.OK);
+      ssUi.ButtonSet.OK);
   }
   else {
-    // No hay proceso en 2º plano activo, veamos quién es el propietario de la hdc ¡getOwner() devuelve null si hdc está en unidad compartida!
+    // No hay proceso en 2º plano activado por otro usuario distinto al actual,veamos quién es el propietario de la hdc
     let emailPropietario;
-    const propietario = SpreadsheetApp.getActiveSpreadsheet().getOwner();
+    const propietario = SpreadsheetApp.getActiveSpreadsheet().getOwner(); // devuelve null si hdc está en unidad compartida!
     if (propietario) {
       emailPropietario = propietario.getEmail();
     } else {
       emailPropietario = null;
     }
-    // [2] Si la hdc está en unidad compartida y el proceso en 2º plano no ha sido activado por el usuario actual solicitar confirmación para proseguir
-    if (!emailPropietario && activadoPor != emailUsuarioActivo) {
+    // [2] Si la hdc está en unidad compartida y el proceso en 2º plano no ha sido activado nunca solicitar confirmación para proseguir
+    if (!emailPropietario && !activadoPor) {
       ejecutar = ssUi.alert(
         `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
         `Solo el propietario del buzón de Gmail en el que se han definido las reglas de
@@ -114,26 +122,18 @@ function ejecutarManualmente() {
     } else if (emailPropietario && emailPropietario != emailUsuarioActivo) {
       // [3] Cancelar ejecución si se puede determinar que el usuario actual no es el propietario de la hdc
       ssUi.alert(
-      `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
-      `${EMAYORDOMO.simboloError} Solo ${emailPropietario} debe realizar un procesado manual.`,
-      ssUi.ButtonSet.OK);
+        `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+        `${EMAYORDOMO.simboloError} Solo ${emailPropietario} debe realizar un procesado manual.`,
+        ssUi.ButtonSet.OK);
       ejecutar = false;
     }
-    
+
     // Seguir con ejecución manual a menos que se haya cancelado en [2] o [3]
     if (ejecutar) {
       // Ejecutar proceso sobre el buzón de Gmail
+      SpreadsheetApp.getActiveSpreadsheet().toast('Procesando buzón...', `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre} dice:`, -1);
       procesarEmails();
-      ssUi.alert(
-        `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
-        `Ejecución manual terminada. Revisa la hoja ${EMAYORDOMO.tablaLog.nombre}.`,
-        ssUi.ButtonSet.OK);
-    } else {
-      // Activación cancelada
-      ssUi.alert(
-        `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
-        `Ejecución manual cancelada.`,
-        ssUi.ButtonSet.OK);
+      SpreadsheetApp.getActiveSpreadsheet().toast(`Ejecución manual terminada. Revisa la hoja ${EMAYORDOMO.tablaLog.nombre}.`, `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre} dice:`, 10);
     }
   }
 
@@ -161,7 +161,7 @@ function procesarEmails() {
   const colEtiqueta = encabezados.indexOf('Etiqueta a procesar');
   const colPlantilla = encabezados.indexOf('Plantilla email');
   const colRegExEmail = encabezados.indexOf('RegEx extracción email');
- 
+
   // Obtener etiquetas de las reglas a procesar: todos los campos requeridos de la regla deben ser VERDADERO (o truthy)
   // En la hdc se impide que varias reglas se apliquen sobre una misma etiqueta por medio de validación de datos
   const etiquetasReglas = tabla.filter(regla =>
@@ -172,7 +172,7 @@ function procesarEmails() {
   const etiquetasUsuario = GmailApp.getUserLabels().map(etiqueta => etiqueta.getName());
 
   // Obtener mensajes en borrador {idBorrador, mensaje, [prefijo asunto, asunto sin prefijo]}
-  const borradores = GmailApp.getDrafts().map(borrador => 
+  const borradores = GmailApp.getDrafts().map(borrador =>
     ({
       id: borrador.getId(),
       mensaje: borrador.getMessage(),
@@ -214,9 +214,9 @@ function procesarEmails() {
       const fila = tabla.find(regla => regla[colEtiqueta] == etiqueta);
       const plantilla = fila[colPlantilla];
       const regExEmail = fila[colRegExEmail]; // Opcional
-      
+
       // ¿La plantilla (borrador) a utilizar existe? (¡cuidado con los duplicados!)
-      
+
       const borrador = borradores.find(borrador => borrador.asuntoRegEx ? borrador.asuntoRegEx[1] == plantilla : null);
       if (!borrador) {
         console.error(`El borrador con prefijo "${plantilla} " no existe.`);
@@ -230,7 +230,7 @@ function procesarEmails() {
             plantilla: plantilla,
             mensaje: `Borrador no encontrado`
           });
-      } else {    
+      } else {
 
         // Etiqueta, borrador y regla OK, intentemos responder a los mensajes 
 
@@ -246,18 +246,18 @@ function procesarEmails() {
             hilosEtiquetados = [...hilosEtiquetados, ...paginaHilos];
             nHilo += nHilos;
           }
-        // Si se ha devuelto el nº máximo de mensajes solicitados haremos una nueva iteración, tal vez haya más
+          // Si se ha devuelto el nº máximo de mensajes solicitados haremos una nueva iteración, tal vez haya más
         } while (nHilos == EMAYORDOMO.maxEmails);
 
         // Recorramos ahora los mensajes de todos los hilos
         hilosEtiquetados.forEach(hilo => {
-          
+
           // ¿Hay mensajes con estrella (no procesados) en el hilo?
           // Alternativa >> Usar fecha de última ejecución vs fecha mensaje (¿condiciones de carrera?)
           if (hilo.hasStarredMessages()) {
 
             hilo.getMessages().forEach(mensaje => {
-              
+
               // ¿Mensaje aún no procesado *y* etiquetado con etiqueta que estamos procesando?
               // Si está activada la vista de conversación en Gmail es posible que el hilo
               // contenga mensajes con distintas etiquetas. Al usar GmailLabel.getThreads()
@@ -265,13 +265,13 @@ function procesarEmails() {
               // que utiliza el servicio avanzado de Gmail para enumerar las etiquetas propias
               // de un mensaje dado.
               if (mensaje.isStarred() && etiquetasMensaje(mensaje, etiqueta)) {
-              
+
                 const body = mensaje.getPlainBody();
                 let destinatario;
 
                 // Destinatario: 1º RegEx, 2º Responder a, 3º Remitente
                 if (regExEmail) destinatario = body.match(new RegExp(regExEmail))[1];
-                  
+
                 // ¿El email extraído tiene pinta de email?
                 const emailTest = /^\S+@\S+\.[a-z]{2,}$/;
 
@@ -309,7 +309,7 @@ function procesarEmails() {
                       mensaje: `Autorespuesta enviada`
                     });
 
-                } catch(e) {
+                } catch (e) {
                   console.error(`Error al enviar respuesta ${plantilla} a ${remitente}.`);
                   operaciones.push(
                     {
@@ -323,11 +323,11 @@ function procesarEmails() {
                     });
                 }
               }
-              
+
               // Refresca hilo para que .hasStarredMessages() devuelva el valor correcto inmediatamente >> https://stackoverflow.com/a/65515913
-              hilo.refresh();  
+              hilo.refresh();
             }); // De envío de respuesta  
-            
+
             hilo.moveToArchive().refresh();
 
           } // De procesamiento de mensajes de cada hilo
@@ -369,13 +369,13 @@ function procesarEmails() {
  */
 function extraerElementos(msg) {
 
-  const allInlineImages = msg.getAttachments({includeInlineImages: true, includeAttachments: false});
-  const attachments = msg.getAttachments({includeInlineImages: false});
-  const htmlBody = msg.getBody(); 
+  const allInlineImages = msg.getAttachments({ includeInlineImages: true, includeAttachments: false });
+  const attachments = msg.getAttachments({ includeInlineImages: false });
+  const htmlBody = msg.getBody();
 
   // Create an inline image object with the image name as key 
   // (can't rely on image index as array built based on insert order)
-  const img_obj = allInlineImages.reduce((obj, i) => (obj[i.getName()] = i, obj) ,{});
+  const img_obj = allInlineImages.reduce((obj, i) => (obj[i.getName()] = i, obj), {});
 
   // Regex to search for all img string positions with cid and alt
   const imgexp = RegExp('<img.*?src="cid:(.*?)".*?alt="(.*?)"[^\>]+>', 'g');
@@ -386,7 +386,7 @@ function extraerElementos(msg) {
   // built an inlineImagesObj from inline image matches
   // match[1] = cid, match[2] = alt
   matches.forEach(match => inlineImagesObj[match[1]] = img_obj[match[2]]);
-  
+
   return {
     htmlBody: htmlBody,
     attachments: attachments,
@@ -407,7 +407,7 @@ function etiquetasMensaje(msg, etiqueta) {
   const id = msg.getId();
   const idEtiqueta = Gmail.Users.Labels.list('me').labels.find(e => e.name == etiqueta).id;
   etiquetas = Gmail.Users.Messages.get('me', id).labelIds;
-  
+
   if (etiquetas.map) {
     return etiquetas.includes(idEtiqueta);
   }
@@ -442,20 +442,20 @@ function duplicarBorradorAPI(idBorrador) {
   let nuevoBorrador;
   try {
 
-      const borrador = GmailApp.getMessageById(idBorrador);
-      const endPoint = 'https://www.googleapis.com/upload/gmail/v1/users/me/drafts?uploadType=media';
-      const parametros = {
-        method: 'POST',
-        contentType: 'message/rfc822',
-        muteHttpExceptions: true,
-        headers: {'Authorization': `Bearer ${ScriptApp.getOAuthToken()}`},
-        payload: borrador.getRawContent()
-      };
-      nuevoBorrador = UrlFetchApp.fetch(endPoint, parametros);
-    
-    } catch(e) {
-      return null;
-    }
+    const borrador = GmailApp.getMessageById(idBorrador);
+    const endPoint = 'https://www.googleapis.com/upload/gmail/v1/users/me/drafts?uploadType=media';
+    const parametros = {
+      method: 'POST',
+      contentType: 'message/rfc822',
+      muteHttpExceptions: true,
+      headers: { 'Authorization': `Bearer ${ScriptApp.getOAuthToken()}` },
+      payload: borrador.getRawContent()
+    };
+    nuevoBorrador = UrlFetchApp.fetch(endPoint, parametros);
+
+  } catch (e) {
+    return null;
+  }
 
   return nuevoBorrador.getResponseCode() == 200 ? JSON.parse(nuevoBorrador.getContentText()) : null;
 
@@ -499,8 +499,8 @@ function actualizarLog(registros) {
     } else {
       filasNuevas = tablaRegistros.length;
     }
-    if (filasNuevas) hoja.insertRowsBefore(EMAYORDOMO.tablaLog.filInicialDatos,filasNuevas);
+    if (filasNuevas) hoja.insertRowsBefore(EMAYORDOMO.tablaLog.filInicialDatos, filasNuevas);
     hoja.getRange(EMAYORDOMO.tablaLog.filInicialDatos, 1, tablaRegistros.length, tablaRegistros[0].length).setValues(tablaRegistros);
   };
-  
+
 }
