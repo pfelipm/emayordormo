@@ -676,10 +676,6 @@ Por último se llama, en su caso, a la función `procesarEmails()`.
       SpreadsheetApp.getActiveSpreadsheet().toast('Procesando buzón...', `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre} dice:`, -1);
       procesarEmails();
       SpreadsheetApp.getActiveSpreadsheet().toast(`Ejecución manual terminada. Revisa la hoja ${EMAYORDOMO.tablaLog.nombre}.`, `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre} dice:`, 10);
-      /*ssUi.alert(
-        `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
-        `Ejecución manual terminada. Revisa la hoja ${EMAYORDOMO.tablaLog.nombre}.`,
-        ssUi.ButtonSet.OK);*/
     }
   }
 
