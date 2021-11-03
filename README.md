@@ -670,21 +670,17 @@ Si no lo está, se verifica si el usuario activo no es el propietario de la hoja
 Por último se llama, en su caso, a la función `procesarEmails()`.
 
 ```javascript
-    // Seguir con ejecución manual a menos que se haya cancelado en [2] o [3]
-    if (ejecutar) {
-      // Ejecutar proceso sobre el buzón de Gmail
-      procesarEmails();
-      ssUi.alert(
-        `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
-        `Ejecución manual terminada. Revisa la hoja ${EMAYORDOMO.tablaLog.nombre}.`,
-        ssUi.ButtonSet.OK);
-    } else {
-      // Activación cancelada
-      ssUi.alert(
-        `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
-        `Ejecución manual cancelada.`,
-        ssUi.ButtonSet.OK);
-    }
+    // Seguir con ejecución manual a menos que se haya cancelado en [2] o [3]
+    if (ejecutar) {
+      // Ejecutar proceso sobre el buzón de Gmail
+      SpreadsheetApp.getActiveSpreadsheet().toast('Procesando buzón...', `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre} dice:`, -1);
+      procesarEmails();
+      SpreadsheetApp.getActiveSpreadsheet().toast(`Ejecución manual terminada. Revisa la hoja ${EMAYORDOMO.tablaLog.nombre}.`, `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre} dice:`, 10);
+      /*ssUi.alert(
+        `${EMAYORDOMO.icono} ${EMAYORDOMO.nombre}`,
+        `Ejecución manual terminada. Revisa la hoja ${EMAYORDOMO.tablaLog.nombre}.`,
+        ssUi.ButtonSet.OK);*/
+    }
   }
 
 }
