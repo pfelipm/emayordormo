@@ -1,5 +1,6 @@
 ![](https://user-images.githubusercontent.com/12829262/126078672-8b8ea2a7-43aa-4f69-8211-74c8798f432d.png)
-![Creado con - Google Apps Script](https://img.shields.io/static/v1?label=Creado+con&message=Google+Apps+Script&color=blue&style=for-the-badge&logo=GAS)
+[![Created with - Google Apps Script](https://img.shields.io/static/v1?label=Created+with&message=Google+Apps+Script&color=blue)](https://developers.google.com/apps-script)
+
 # Tabla de contenidos
 
 *   [¿Qué es eMayordormo?](#qu%C3%A9-es-emayordormo)
