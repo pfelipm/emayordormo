@@ -1,5 +1,6 @@
 ![](https://user-images.githubusercontent.com/12829262/126078672-8b8ea2a7-43aa-4f69-8211-74c8798f432d.png)
-[![Created with - Google Apps Script](https://img.shields.io/static/v1?label=Created+with&message=Google+Apps+Script&color=blue)](https://developers.google.com/apps-script)
+
+![Created with - Google Apps Script](https://img.shields.io/static/v1?label=Created+with&message=Google+Apps+Script&color=blue)
 
 # Tabla de contenidos
 
@@ -954,7 +955,7 @@ Al mensaje atendido se marca como leído y se le retira la marca de destacado, d
 
 Finalmente, el registro completo de operaciones se traslada a la pestaña 🗒️ **Registro** de la hoja de cálculo de una vez, reduciendo de este modo las operaciones de escritura sobre ella, que son, temporalmente costosas, al máximo.
 
-```
+```javascript
  // Escribe eventos en log (hdc) solo al finalizar completamentente la ejecución
   if (operaciones.length == 0) {
     operaciones.push(
@@ -1168,11 +1169,11 @@ Los valores más recientes aparecerán siempre en la parte superior de la hoja d
 
 # Mejoras y reflexiones finales
 
-eMayordomo ha sido en gran medida un viaje de aprendizaje. Como todos los viajes que merecen la pena. El código de este repositorio no pretende ser por tanto un ejemplo de buenas prácticas, solo un reflejo del trabajo realizado y del camino recorrido.
+eMayordomo ha sido en gran medida un viaje de aprendizaje. Como muchos de los viajes que merecen la pena. El código de este repositorio no pretende ser por tanto un ejemplo de buenas prácticas, solo un reflejo del trabajo realizado y del camino recorrido.
 
 Si tuviera que comenzarlo ahora desde cero, con todo lo aprendido, seguramente adoptaría decisiones de diseño distintas.
 
-Y la primera sería dejar de utilizar el servicio estándar de Gmail para localizar los mensajes a los que se debe responder del modo en que lo he hecho. En lugar de usar [`GmailLabel.getThreads()`](https://developers.google.com/apps-script/reference/gmail/gmail-label#getThreads()) para luego tener que determinar si cada uno de los hilos contiene mensajes destacados y, por si fuera poco, realizar una validación final sobre cada mensaje para comprobar si realmente ha sido marcado con la etiqueta perseguida, resulta mucho más práctico tirar directamente del servicio avanzado / API de Gmail y de su método [`users.messages.list`](https://developers.google.com/gmail/api/reference/rest/v1/users.messages/list), cuyo parámetro `q` admite una cadena de búsqueda con la que es pan comido obtener los mensajes que hay que procesar en un solo paso y sin ambigüedades con las etiquetas. Por ejemplo:
+Y la primera sería dejar de utilizar el servicio estándar de Gmail para localizar los mensajes a los que se debe responder del modo en que lo he hecho. En lugar de usar [`GmailLabel.getThreads()`](https://developers.google.com/apps-script/reference/gmail/gmail-label#getThreads()) para luego tener que determinar si cada uno de los hilos contiene mensajes destacados y, por si fuera poco, realizar una validación final sobre cada mensaje para comprobar si realmente ha sido marcado con la etiqueta perseguida, resulta mucho más práctico tirar directamente del servicio avanzado / API de Gmail y de su método [`users.messages.list`](https://developers.google.com/gmail/api/reference/rest/v1/users.messages/list), cuyo parámetro `q` admite una cadena de búsqueda. De este modo es pan comido obtener los mensajes que hay que procesar en un solo paso... y sin ambigüedades con las etiquetas. Por ejemplo:
 
 ```
 label:at-general is:starred 
