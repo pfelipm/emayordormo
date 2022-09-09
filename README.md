@@ -1,6 +1,6 @@
 ![](https://user-images.githubusercontent.com/12829262/126078672-8b8ea2a7-43aa-4f69-8211-74c8798f432d.png)
 
-[![Creado con - Google Apps Script](https://img.shields.io/static/v1?label=Creado+con&message=Google+Apps+Script&color=blue&logo=GAS)](https://developers.google.com/apps-script)
+![Creado con - Google Apps Script](https://img.shields.io/static/v1?label=Creado+con&message=Google+Apps+Script&color=blue&logo=GAS)
 
 # Tabla de contenidos
 
@@ -189,7 +189,7 @@ La interfaz de usuario de eMayordormo no contempla en estos momentos la posibili
 :warning: Cuando un script que instala _triggers_ puede ser utilizado por varios usuarios es conveniente **impedir que se activen múltiples instancias del mismo**. De lo contrario nos podemos encontrar con la situación de que el script reaccione por duplicado ante un determinado evento, lo que probablemente supondríar un mal funcionamiento o, como mínimo, un pérdida de eficiencia. Esto se consigue utilizando:
 
 *   [PropertiesService](https://developers.google.com/apps-script/guides/properties), para llevar la cuenta de la dirección de email del usuario que ha realizado la activación del _trigger_. Un valor de `null` o `''` indica que no está activo. El uso de este registro es imprescindible dado que un usuario [no puede determinar](https://developers.google.com/apps-script/reference/script/script-app#getProjectTriggers()) qué _triggers han_ sido activados por otros, ni siquiera en el contexto de un mismo script. La información se guarda en el registro de **propiedades del documento**, de modo que quede compartida entre todos sus usuarios.
-*   [LockService](https://developers.google.com/apps-script/reference/lock), para garantizar que no se produzcan problemas de concurrencia al modificar la propiedad que identifica al usuario que ha instalado el activador. Dado que este script no se distribuye como complemento, [`getDocumentLock()`](https://developers.google.com/apps-script/reference/lock/lock-service?hl=en#getdocumentlock) y [`getScriptLock()`](https://developers.google.com/apps-script/reference/lock/lock-service?hl=en#getscriptlock). podrían utilizarse indistintamente, obteniendo en ambos casos los mismos resultados.
+*   [LockService](https://developers.google.com/apps-script/reference/lock), para garantizar que no se produzcan problemas de concurrencia al modificar la propiedad que identifica al usuario que ha instalado el activador. Dado que este script no se distribuye como complemento, [`getDocumentLock()`](https://developers.google.com/apps-script/reference/lock/lock-service?hl=en#getdocumentlock) y [`getScriptLock()`](https://developers.google.com/apps-script/reference/lock/lock-service?hl=en#getscriptlock) podrían utilizarse indistintamente, obteniendo en ambos casos los mismos resultados.
 
 ![](https://user-images.githubusercontent.com/12829262/123540516-ae2c9180-d73f-11eb-9b0f-e63a616eed08.png)
 
@@ -1164,7 +1164,7 @@ function actualizarLog(registros) {
 
 Los valores más recientes aparecerán siempre en la parte superior de la hoja de cálculo. Este es un detalle insignificante pero que facilita comprobar los registros de la actividad reciente de eMayordomo, que aparecerán de inmediato al cargar la hoja de cálculo. Esto se consigue de dos maneras:
 
-*   Invirtiendo el vector donde se van anotando los eventos durante la ejecución de `procesarEmails()` antes de trasladarlo a la hoja de cálculo. Esto se hace con  el método [Array.reverse()](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Global_Objects/Array/reverse).
+*   Invirtiendo el vector donde se van anotando los eventos durante la ejecución de `procesarEmails()` antes de trasladarlo a la hoja de cálculo. Esto se hace con el método [Array.reverse()](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Global_Objects/Array/reverse).
 *   Insertado las filas necesarias en parte superior de la tabla para dar cabida a los nuevos eventos a registrar.
 
 # Mejoras y reflexiones finales
